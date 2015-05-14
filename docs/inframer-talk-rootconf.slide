@@ -80,14 +80,6 @@ https://github.com/saurabh-hirani/inframer/
 
 .image images/arch.png 970 950
 
-* Components
-
-- Collectors
-- Stores  
-- REST API
-- Analyzers
-- Secret ingredient
-
 * Collectors
 
 - Collect information from each database - return json
