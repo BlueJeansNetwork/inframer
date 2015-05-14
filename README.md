@@ -133,4 +133,4 @@ curl -L "http://localhost:8081/inframer/api/v1/db/chef/env/chef_host/qa?flatten=
 
 ### More details
 
-* Check https://github.com/saurabh-hirani/inframer/tree/master/docs
+* Check https://github.com/BlueJeansNetwork/inframer/tree/master/docs
