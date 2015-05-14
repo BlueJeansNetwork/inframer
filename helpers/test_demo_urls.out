@@ -1,0 +1,17 @@
+HTTP/1.0 200 OK
+Content-Type: application/json
+Content-Length: 280
+Server: Werkzeug/0.9.6 Python/2.7.5
+Date: Thu, 14 May 2015 09:47:50 GMT
+
+{
+  "chef_host/qa": {
+    "chef_type": "environment",
+    "cookbook_versions|ntp": "= 0.1.0",
+    "default_attributes|ntp|ntpserver": "testntp",
+    "default_attributes|ntp|servers|0": "test1",
+    "description": "qa",
+    "json_class": "Chef::Environment",
+    "name": "qa"
+  }
+}

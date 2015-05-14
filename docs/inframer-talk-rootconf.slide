@@ -1,0 +1,154 @@
+Inframer
+Know thy infra
+
+Saurabh Hirani
+@sphirani
+saurabhhirani@bluejeansnet.com
+https://github.com/saurabh-hirani/inframer/
+
+* Agenda:
+
+- Problem statement
+- Pain points
+- Proposed solution
+- Solution components
+- Demo
+- Conclusion
+
+* Problem statement
+
+- How do i co-relate information in my distributed infrastrucutre?
+
+* Distributed infrastructure
+
+- 1 node - multiple databases
+- Database: any place where infra information resides e.g. Chef, VMware, etc.
+- Config management - Chef
+- Monitoring - Icinga
+- On premise infra - VMware
+- Cloud infra - AWS
+- Inventory, IT assets, network connectivity - Device42
+- Others
+
+* The good parts
+
+- Each database does one thing and does it right
+- Provide rich REST APIs
+- Useful libraries built over these APIs - boto, pychef, etc.
+
+* The pain points
+
+- Knowledge trapped in silos
+- APIs don't talk to each other
+- They shouldn't
+
+* But..
+
+- Don't you wish they could?
+- Don't you wish you could co-relate their information?
+- Don't you wish...
+
+* You had a tool which...
+
+- given an IP -
+  Gives you information about that node in chef, icinga, aws, device42, etc.
+- does a diff/intersection of various databases
+  Gives you all the AWS nodes in us-west-1 region which are running but not yet monitored
+  Gives you all the AWS nodes in us-west-1 region which are running, monitored but not yet cheffed
+  Gives you all the cheffed nodes which are not in AWS
+- validates your assumptions about your data consistency
+  Given an IP - give you all the databases it is not present in
+- does all of the above from the command line 
+
+* Enter Inframer
+
+- Created to scratch our itch
+- Python, Flask, Redis
+- 2 hackathons / 48 hours
+- Team
+  - Ravi Ranjan
+  - Saurabh Bathe
+  - Saurabh Hirani
+  - Virendra Bhalothia
+- Added to the DevOps roadmap
+
+* One line description:
+
+- Collect, store, analyze - rinse, repeat
+
+* Architecture:
+
+.image images/arch.png 970 950
+
+* Components
+
+- Collectors
+- Stores  
+- REST API
+- Analyzers
+- Secret ingredient
+
+* Collectors
+
+- Collect information from each database - return json
+- Each database has one or many views e.g. chef has environments, nodes
+- Extensible - write your own collectors
+
+* Stores
+
+- Collectors dump information in stores - current store - Redis
+- Current implementation - Redis
+- Collectors decoupled from stores
+
+* REST API
+
+- REST API built on top of store
+- Query the dumped data and present individual and aggregate information
+
+  /inframer/api/v1/db
+  /inframer/api/v1/db/aws
+  /inframer/api/v1/db/aws/region/
+  /inframer/api/v1/db/aws/region/us-east-1/i-9999xy1
+
+- Filters for getting data subsets
+
+* Demo
+
+- REST API
+
+* Analyzers
+
+- Command line tools on top of the REST APIs
+- Query individual databases, perform set operations
+  Give me all the AWS nodes in us-west-1 region which are running, monitored but not yet cheffed
+- Extensible - write your own analyzers
+
+* Secret ingredient - You
+
+- No two infrastructure layouts are alike
+- More databases - write new collectors
+- Fuzzier searches - add your own store
+- Analytics - write new analyzers
+- Fit the tool to your needs
+- Participate in Hackathons!
+
+* Conclusion
+
+- Growing need to co-relate information - in a generic way
+- Collate information collected by your APIs and make sense of it
+- Central source of examples
+
+* Thank you - Q & A
+
+.link https://github.com/saurabh-hirani/inframer/
+- saurabhhirani@bluejeansnet.com
+- We are BlueJeans Network
+- An interoperable cloud based video conferencing service
+- We make video conferencing easier
+
+* Roadmap
+
+- Granular updates - right now - create, flush, re-create
+- Better search capabilities - full text, fuzzy values
+- Test if it fits different infra layouts
+

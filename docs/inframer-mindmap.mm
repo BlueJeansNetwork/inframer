@@ -1,0 +1,71 @@
+<map version="1.0.1">
+<!-- To view this file, download free mind mapping software FreeMind from http://freemind.sourceforge.net -->
+<node CREATED="1428467764306" ID="ID_1938868260" MODIFIED="1428508470748" TEXT="Inframer">
+<node CREATED="1428467939768" ID="ID_496213197" MODIFIED="1428507297801" POSITION="right" TEXT="1. Distributed Infrastructure">
+<node CREATED="1428468085691" ID="ID_959272331" MODIFIED="1428468419211" TEXT="Config mgmt - Chef"/>
+<node CREATED="1428468168473" ID="ID_1755108413" MODIFIED="1428468427637" TEXT="Monitoring - Nagios, Icinga"/>
+<node CREATED="1428468376011" ID="ID_1475471096" MODIFIED="1428468438773" TEXT="On premise infra - VMware"/>
+<node CREATED="1428468392268" ID="ID_917987955" MODIFIED="1428468401667" TEXT="Cloud infra - AWS"/>
+<node CREATED="1428508566810" ID="ID_461102812" MODIFIED="1428508569670" TEXT="What have you"/>
+</node>
+<node CREATED="1428468471195" ID="ID_1160986810" MODIFIED="1428507298805" POSITION="right" TEXT="2. Good news">
+<node CREATED="1428468496195" ID="ID_1666166197" MODIFIED="1428468542610" TEXT="Every component - do one thing and do it well">
+<icon BUILTIN="button_ok"/>
+</node>
+<node CREATED="1428468514586" ID="ID_522316152" MODIFIED="1428468545339" TEXT="Rich APIs for CRUD operations">
+<icon BUILTIN="button_ok"/>
+</node>
+<node CREATED="1428468526045" ID="ID_385127890" MODIFIED="1428468547979" TEXT="REST APIs - language agnostic">
+<icon BUILTIN="button_ok"/>
+</node>
+</node>
+<node CREATED="1428468571451" ID="ID_1243376389" MODIFIED="1428507299739" POSITION="right" TEXT="3. Bad news">
+<node CREATED="1428468584843" ID="ID_175228815" MODIFIED="1428468706259" TEXT="API tools standalone">
+<icon BUILTIN="button_cancel"/>
+</node>
+<node CREATED="1428468596740" ID="ID_110852565" MODIFIED="1428468708915" TEXT="Cannot talk to each other">
+<icon BUILTIN="button_cancel"/>
+</node>
+<node CREATED="1428468604950" ID="ID_707616931" MODIFIED="1428468711491" TEXT="Should not talk to each other">
+<icon BUILTIN="button_cancel"/>
+</node>
+<node CREATED="1428468614083" ID="ID_625306159" MODIFIED="1428468713339" TEXT="Every organization duplicates the effort">
+<icon BUILTIN="button_cancel"/>
+</node>
+</node>
+<node CREATED="1428468647020" ID="ID_1564246593" MODIFIED="1428507301431" POSITION="right" TEXT="4. The Question">
+<node CREATED="1428468659091" ID="ID_1479460070" MODIFIED="1428508759084" TEXT="What if I had a central aggregator ">
+<icon BUILTIN="help"/>
+</node>
+</node>
+<node CREATED="1428507419727" ID="ID_1123479966" MODIFIED="1428508169938" POSITION="left" TEXT="5. What we did">
+<node CREATED="1428507566471" ID="ID_1360254036" MODIFIED="1428508164087" TEXT="Collect information centrally"/>
+<node CREATED="1428507595090" ID="ID_645761418" MODIFIED="1428507608727" TEXT="Use IP address as the key"/>
+<node CREATED="1428507612091" ID="ID_67241008" MODIFIED="1428508777625" TEXT="Expose info through REST APIs"/>
+<node CREATED="1428507631473" ID="ID_1379628634" MODIFIED="1428507643087" TEXT="Build tools that consume those  APIs"/>
+</node>
+<node CREATED="1428508214051" ID="ID_1486628718" MODIFIED="1428508403002" POSITION="left" TEXT="6. Architecture">
+<node CREATED="1428508304887" ID="ID_656665997" MODIFIED="1428508524623" TEXT="Collectors - python, ruby, your_fav_language"/>
+<node CREATED="1428508321496" ID="ID_1067978003" MODIFIED="1429458830211" TEXT="Central store - Redis"/>
+<node CREATED="1428508404170" ID="ID_1287785839" MODIFIED="1428508433875" TEXT="REST APIs - Flask"/>
+<node CREATED="1428508448509" ID="ID_1548955640" MODIFIED="1428508459406" TEXT="Analyzers - consume REST APIs and make sense of it"/>
+</node>
+<node CREATED="1428507557953" ID="ID_504778013" MODIFIED="1428508544005" POSITION="left" TEXT="7. Advantages">
+<node CREATED="1428507664261" ID="ID_374591585" MODIFIED="1428508017994" TEXT="Generic collectors ">
+<icon BUILTIN="button_ok"/>
+</node>
+<node CREATED="1428507668993" ID="ID_633116123" MODIFIED="1428508020007" TEXT="REST APIs act as a base to build contextual tools">
+<icon BUILTIN="button_ok"/>
+</node>
+<node CREATED="1428507841571" ID="ID_286603592" MODIFIED="1428508023100" TEXT="Extensible to add your own collectors">
+<icon BUILTIN="button_ok"/>
+</node>
+</node>
+<node CREATED="1428507553663" ID="ID_866868226" MODIFIED="1428508555391" POSITION="left" TEXT="8.Conclusion">
+<node CREATED="1428507909032" ID="ID_93611890" MODIFIED="1428507915087" TEXT="Not a replacement for CMDB"/>
+<node CREATED="1428507917395" ID="ID_754953181" MODIFIED="1428507938040" TEXT="Collect-store-analyze - rinse repeat"/>
+<node CREATED="1428507944348" ID="ID_1955506379" MODIFIED="1428508812911" TEXT="Get your APIs to work in unision while maintaining decoupling"/>
+<node CREATED="1428507966362" ID="ID_1515173551" MODIFIED="1428507980318" TEXT="Make it easier for  DevOps to get holistic view of your infra"/>
+</node>
+</node>
+</map>

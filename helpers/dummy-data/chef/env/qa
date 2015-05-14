@@ -1,0 +1,20 @@
+{
+  "chef_host/qa": {
+    "chef_type": "environment",
+    "cookbook_versions": {
+      "ntp": "= 0.1.0"
+    },
+    "default_attributes": {
+      "ntp": {
+        "ntpserver": "testntp",
+        "servers": [
+          "test1"
+        ]
+      }
+    },
+    "description": "qa",
+    "json_class": "Chef::Environment",
+    "name": "qa",
+    "override_attributes": {}
+  }
+}
