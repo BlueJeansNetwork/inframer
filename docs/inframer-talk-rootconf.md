@@ -1,11 +1,8 @@
 # Inframer - Know thy infra
 
-<footer>
-BlueJeans
-</footer>
 ---
 
-### Problem
+# Problem
 
 - How do i co-relate information in my distributed infrastrucutre?
 
@@ -132,7 +129,8 @@ BlueJeans
 - Command line tools on top of the REST APIs
 - Query individual databases, perform set operations
   <pre>
-  Give me all the AWS nodes in us-west-1 region which are running, monitored but not yet cheffed
+  Give me all the AWS nodes in us-west-1 region 
+  which are running, monitored but not yet cheffed
   </pre>
 - Extensible - write your own analyzers
 
