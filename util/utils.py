@@ -6,7 +6,7 @@ import importlib
 from collections import OrderedDict
 
 def load_store(cfg):
-  store_mod_name = 'inframer.stores.%s_store' % cfg['store']['name']
+  store_mod_name = 'stores.%s_store' % cfg['store']['name']
   store_mod = importlib.import_module(store_mod_name)
   return store_mod.Store(cfg)
 
@@ -78,7 +78,7 @@ def flatten_ds(ds, key="", path="", flattened=None, sep='|'):
                  flattened, sep=sep)
   return flattened
 
-def load_cfg(cfg_dir, cfg_filename='cfg.ini'):
+def load_cfg(cfg_dir, cfg_filename='config/cfg.ini'):
   cfg_file = os.path.join(cfg_dir, cfg_filename)
   if not os.path.exists(cfg_file):
     raise ValueError('ERROR: Failed to find cfg file: %s' % cfg_file)
@@ -89,7 +89,7 @@ def load_cfg(cfg_dir, cfg_filename='cfg.ini'):
     cfg_ds[section] = dict(parser.items(section))
   return cfg_ds
 
-def load_base_cfg(component, cfg_filename='cfg.ini'):
+def load_base_cfg(component, cfg_filename='config/cfg.ini'):
   curr_dir = os.path.dirname(os.path.abspath(__file__))
   target_dir = os.path.join(curr_dir, component)
   return load_cfg(target_dir, cfg_filename)

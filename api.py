@@ -5,13 +5,13 @@ import sys
 import json
 import flask
 import requests
-import inframer.utils
+from util import utils
 
 # load the cfg
-cfg = inframer.utils.load_base_cfg('api')
+cfg = utils.load_base_cfg('../')
 
 # create the store obj
-store_obj = inframer.utils.load_store(cfg)
+store_obj = utils.load_store(cfg)
 
 # create base uris and urls to be used
 base_url = 'http://%s:%s' % (cfg['api']['host'], cfg['api']['port'])
@@ -37,12 +37,12 @@ def get_db_target_data(db, view, varargs):
   # check if we need a subset of the ds
   qkey = flask.request.args.get('key')
   if qkey:
-    output = inframer.utils.get_dict_subset(output, qkey, key_sep)
+    output = utils.get_dict_subset(output, qkey, key_sep)
 
   # flatten ds if required
   flatten = flask.request.args.get('flatten')
   if flatten and flatten == 'true':
-    output = inframer.utils.flatten_ds(output, sep=key_sep)
+    output = utils.flatten_ds(output, sep=key_sep)
 
   return flask.jsonify({varargs: output})
 
@@ -111,9 +111,9 @@ def get_db_data(db, view):
   if not flatten:
     flatten = 'true'
   if flatten == 'false':
-    output = inframer.utils.unflatten_ds(output)
+    output = utils.unflatten_ds(output)
   else:
-    output = inframer.utils.flatten_ds(output, sep='/')
+    output = utils.flatten_ds(output, sep='/')
 
   return flask.jsonify(output)
 
