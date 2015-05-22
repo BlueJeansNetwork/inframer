@@ -21,17 +21,11 @@ Inframer - collect, store, analyze - your infrastructure information
 * Install the required python modules (temporary fix till we make this project installable via pip)
 
 ```
-# pip install requests flask redis pychef boto
-```
-
-* Ensure that PYTHONPATH contains this project - assuming you cloned this repo in /home/user/inframer
-
-```
-export PYTHONPATH="$PYTHONPATH:/home/user/"
+# make deps
 ```
 
 
-* Update api/cfg.ini section
+* Configure your redis config in api/cfg.ini 
 
 ```
 [redis]
@@ -43,13 +37,13 @@ db: 1
 * Run the following command to load dummy data in redis:
 
 ```
-python inframer/helpers/dummy-data/load_dummy_data.py
+make dummy
 ```
 
 * Start the api server. By default it runs on - localhost:8081:
 
 ```
-python inframer/api/api.py
+make run
 ```
 
 ### Examples

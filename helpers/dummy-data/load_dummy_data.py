@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
-import sys
-import redis
 import json
 import glob
 import os
+
+import redis
+
 
 redis_namespace = '/inframer/api/v1/db'
 targets = ['nagios/host_status', 'aws/region', 'chef/env', 'chef/node']
