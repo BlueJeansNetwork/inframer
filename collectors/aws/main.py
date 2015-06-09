@@ -6,7 +6,7 @@ import json
 import argparse
 import boto.ec2
 from collections import OrderedDict
-import inframer.utils
+from util import utils
 
 VERBOSE = False
 
@@ -27,12 +27,12 @@ def collect_data(cfg):
   for instance in instances:
     # flatten out the ds, stringify the values and unflatten it - shortcut
     # rather than taking selective items
-    flattened_ds = inframer.utils.flatten_ds(instance.__dict__)
+    flattened_ds = utils.flatten_ds(instance.__dict__)
     updated_ds = {}
     for k, v in flattened_ds.items():
       updated_ds[k] = str(v)
 
-    view_data[instance.id] = inframer.utils.unflatten_ds(updated_ds)
+    view_data[instance.id] = utils.unflatten_ds(updated_ds)
     view_data[instance.id]['tags'] = instance.tags
     view_data[instance.id]['state'] = instance.state
 

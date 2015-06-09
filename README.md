@@ -12,7 +12,7 @@ Inframer - collect, store, analyze - your infrastructure information
 
 * helpers: internal - misc helper scripts
 
-* bin: main working engine - start collection by running run\_collectors.py
+* start collection by running run\_collectors.sh
 
 ### Trial run
 
