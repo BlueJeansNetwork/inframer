@@ -8,7 +8,7 @@ import requests
 from util import utils
 
 # load the cfg
-cfg = utils.load_base_cfg('../')
+cfg = utils.load_base_cfg('config')
 
 # create the store obj
 store_obj = utils.load_store(cfg)
