@@ -115,6 +115,15 @@ and its corresponding value as target\_val
 curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?key_pattern=*us-west*&target_key=state&target_val=running"
 ```
 
+* If you just want to expand the urls in the view state - use target\_key \* - in this case target\_value is ignored - use this switch carefully
+because this will increase the payload.
+
+```
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?target_key=*&flatten=false"
+```
+
+
+
 * For flattening - if you want a separator other than / - use the query string parameter - key\_sep
 
 ```
