@@ -25,7 +25,7 @@ Inframer - collect, store, analyze - your infrastructure information
 ```
 
 
-* Configure your redis config in api/cfg.ini 
+* Configure your redis config in config/cfg.ini 
 
 ```
 [redis]
