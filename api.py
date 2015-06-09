@@ -78,16 +78,25 @@ def get_db_data(db, view):
     output_value = {'data': None, 'url': None}
     output_value['url'] = base_url + search_val
     has_filter = False
+
     if target_params['key']:
       has_filter = True
-      # if target_key specified - show only those keys
-      client = app.test_client()
-      uri = search_val + '?'
-      uri += '&'.join((k + '=' + v for k, v in target_params.iteritems() \
-                       if v is not None))
-      response = client.get(uri, headers=list(flask.request.headers),
-                            follow_redirects=True)
-      response_dict = json.loads(response.data).values()[0]
+      response_dict = None
+
+      if target_params['key'] != '*':
+        # if target_key specified - show only those keys
+        client = app.test_client()
+        uri = search_val + '?'
+        uri += '&'.join((k + '=' + v for k, v in target_params.iteritems() \
+                         if v is not None))
+        response = client.get(uri, headers=list(flask.request.headers),
+                              follow_redirects=True)
+        response_dict = json.loads(response.data).values()[0]
+      else:
+        response_dict = json.loads(store_obj.get_key(search_val))
+        if target_params['flatten'] == 'true':
+          response_dict = utils.flatten_ds(response_dict)
+
       if response_dict:
         if target_params['value']:
           # if target_value specified show only those keys with that value
@@ -98,7 +107,8 @@ def get_db_data(db, view):
         else:
           output_value['data'] = response_dict
 
-    output_key = search_val.split(unfiltered_search_pattern)[1].replace('/', '', 1)
+    output_key = search_val.split(unfiltered_search_pattern)[1].replace('/',
+                                                                        '', 1)
     output[output_key] = output_value
 
     if output_value['data'] is None:
