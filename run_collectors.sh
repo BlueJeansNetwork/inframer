@@ -25,4 +25,4 @@ python run_collector.py aws.main --view region --region us-east-1 $*
 
 python run_collector.py device42.main --username $DEVICE42_USERNAME --password $DEVICE42_PASSWD --service_levels Stage Production $*
 
-python run_collector.py netscalar.main --view lbvserver --username $NETSCALAR_USERNAME --password $NETSCALAR_PASSWD --host $DEVICE42_HOST $*
+python run_collector.py netscalar.main --view lbvserver --username $NETSCALAR_USERNAME --password $NETSCALAR_PASSWD --host $NETSCALAR_HOST --port $NETSCALAR_PORT $*
