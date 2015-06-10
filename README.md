@@ -1,5 +1,11 @@
 Inframer - collect, store, analyze - your infrastructure information
 
+### Introduction
+
+* Rootconf talk: http://www.youtube.com/watch?v=qB1bGUNzRb4
+
+* More info: https://github.com/BlueJeansNetwork/inframer/tree/master/docs
+
 ### Layout
 
 * collectors: collect information from various infrastructure databases
@@ -133,7 +139,3 @@ curl -L "http://localhost:8081/inframer/api/v1/db/chef/env/chef_host/qa?flatten=
 ### Actual run
 
 * Run the collectors via run_collector.py and view the collected infro through the API
-
-### More details
-
-* Check https://github.com/BlueJeansNetwork/inframer/tree/master/docs
