@@ -79,15 +79,15 @@ curl -L "http://localhost:8081/inframer/api/v1/db/chef/env/"
 * For a view, filter out keys on a pattern
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?key_pattern=*us-west*"
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?key_pattern=us-west"
 ```
 
 * For a view, expand/flatten the keys
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?flatten=false&key_pattern=*us-west*"
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?flatten=false&key_pattern=us-west"
 curl -L "http://localhost:8081/inframer/api/v1/db/chef/env/?flatten=false"
-curl -L "http://localhost:8081/inframer/api/v1/db/chef/env/?key_pattern=*qa*&flatten=true"
+curl -L "http://localhost:8081/inframer/api/v1/db/chef/env/?key_pattern=qa&flatten=true"
 ```
 
 * For a target, find its attributes
@@ -112,23 +112,21 @@ curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/us-east-1/i-inst4?k
 * Find a specific key for multiple targets - go the view and then specify same key as above as - target\_key.
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?key_pattern=*us-west*&target_key=state"
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?key_pattern=us-west&target_key=state"
 ```
 
 * Find a specific key with a specific value for multiple targets - go the view and then specify same key as above as - target\_key
 and its corresponding value as target\_val
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?key_pattern=*us-west*&target_key=state&target_val=running"
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?key_pattern=us-west&target_key=state&target_val=running"
 ```
 
-* If you just want to expand the urls in the view state - use target\_key \* - in this case target\_value is ignored - use this switch carefully
-because this will increase the payload.
+* If you just want to expand the urls in the view state - use the following url - use this switch carefully because 
+this will increase the payload.
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?target_key=*&flatten=false"
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?key=*&target_key=*&flatten=false"
 ```
-
-
 
 * For flattening - if you want a separator other than / - use the query string parameter - key\_sep
 

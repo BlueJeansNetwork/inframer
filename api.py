@@ -5,6 +5,7 @@ import sys
 import json
 import flask
 import requests
+import re
 from util import utils
 
 # load the cfg
@@ -56,14 +57,15 @@ def get_db_data(db, view):
   key_pattern_str = flask.request.args.get('key_pattern')
   if key_pattern_str:
     if not key_pattern_str.startswith('/'):
-      key_pattern_str = '/' + key_pattern_str
+      key_pattern_str = '/*' + key_pattern_str + '*'
     search_pattern += key_pattern_str
-  search_vals = store_obj.search_keys(search_pattern + '*')
+  search_vals = store_obj.search_keys(search_pattern)
 
   # get target_params if specified
   target_params = {
     'key': None,
     'value': None,
+    'value_pattern': None,
     'flatten': 'false',
     'key_sep': '/'
   }
@@ -104,6 +106,11 @@ def get_db_data(db, view):
             output_value['data'] = response_dict
           else:
             output_value['data'] = None
+        elif target_params['value_pattern']:
+          # if target_value_pattern specified show only keys whose value match
+          # the pattern
+          if re.match(target_params['value_pattern'], response_dict.values()[0]):
+            output_value['data'] = response_dict
         else:
           output_value['data'] = response_dict
 
