@@ -55,10 +55,12 @@ def get_db_data(db, view):
   # add filter if any
   unfiltered_search_pattern = search_pattern
   key_pattern_str = flask.request.args.get('key_pattern')
-  if key_pattern_str:
-    if not key_pattern_str.startswith('/'):
-      key_pattern_str = '/*' + key_pattern_str + '*'
-    search_pattern += key_pattern_str
+  if key_pattern_str is None:
+    key_pattern_str = '*'
+
+  if not key_pattern_str.startswith('/'):
+    key_pattern_str = '/*' + key_pattern_str + '*'
+  search_pattern += key_pattern_str
   search_vals = store_obj.search_keys(search_pattern)
 
   # get target_params if specified
