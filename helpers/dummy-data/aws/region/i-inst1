@@ -17,7 +17,7 @@
     "id": "i-inst1",
     "image_id": "ami-abcde",
     "instance_profile": "None",
-    "instance_type": "m3.small",
+    "instance_type": "m3.medium",
     "interfaces": "[NetworkInterface:eni-623b]",
     "ip_address": "None",
     "item": "\n                ",
