@@ -115,6 +115,12 @@ curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/us-east-1/i-inst4?k
 curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?key_pattern=us-west&target_key=state"
 ```
 
+* Find multiple values for a specific key e.g. find all aws instances of type m3.\*
+
+```
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?key_pattern=us-west&target_key=instance_type&target_value_pattern=m3"
+```
+
 * Find a specific key with a specific value for multiple targets - go the view and then specify same key as above as - target\_key
 and its corresponding value as target\_val
 ```
@@ -125,7 +131,7 @@ curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?key_pattern=us-wes
 this will increase the payload.
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?key=*&target_key=*&flatten=false"
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?target_key=\*&flatten=false"
 ```
 
 * For flattening - if you want a separator other than / - use the query string parameter - key\_sep
