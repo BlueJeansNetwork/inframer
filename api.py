@@ -53,7 +53,6 @@ def get_db_data(db, view):
   search_pattern = '/'.join([base_uri_db, db, view])
 
   # add filter if any
-  unfiltered_search_pattern = search_pattern
   key_pattern_str = flask.request.args.get('key_pattern')
   if key_pattern_str is None:
     key_pattern_str = '*'
@@ -63,78 +62,108 @@ def get_db_data(db, view):
   search_pattern += key_pattern_str
   search_vals = store_obj.search_keys(search_pattern)
 
-  # get target_params if specified
   target_params = {
-    'key': None,
-    'value': None,
-    'value_pattern': None,
-    'flatten': 'false',
-    'key_sep': '/'
+    'target_keys': [],
+    'target_filters': {},
   }
-  for param in target_params.keys():
-    param_val = flask.request.args.get('target_' + param)
-    if param_val != '':
-      target_params[param] = param_val
 
-  output = {}
-  # assume that this is node data
-  for search_val in search_vals:
-    output_value = {'data': None, 'url': None}
-    output_value['url'] = base_url + search_val
-    has_filter = False
-
-    if target_params['key']:
-      has_filter = True
-      response_dict = None
-
-      if target_params['key'] != '*':
-        # if target_key specified - show only those keys
-        client = app.test_client()
-        uri = search_val + '?'
-        uri += '&'.join((k + '=' + v for k, v in target_params.iteritems() \
-                         if v is not None))
-        response = client.get(uri, headers=list(flask.request.headers),
-                              follow_redirects=True)
-        response_dict = json.loads(response.data).values()[0]
-      else:
-        response_dict = json.loads(store_obj.get_key(search_val))
-        if target_params['flatten'] == 'true':
-          response_dict = utils.flatten_ds(response_dict)
-
-      if response_dict:
-        if target_params['value']:
-          # if target_value specified show only those keys with that value
-          if response_dict.values()[0] == target_params['value']:
-            output_value['data'] = response_dict
-          else:
-            output_value['data'] = None
-        elif target_params['value_pattern']:
-          # if target_value_pattern specified show only keys whose value match
-          # the pattern
-          if re.match(target_params['value_pattern'], response_dict.values()[0]):
-            output_value['data'] = response_dict
-        else:
-          output_value['data'] = response_dict
-
-    output_key = search_val.split(unfiltered_search_pattern)[1].replace('/',
-                                                                        '', 1)
-    output[output_key] = output_value
-
-    if output_value['data'] is None:
-      del output_value['data']
-      if has_filter:
-        del output[output_key]
-
-  # expand the keys if specified
-  flatten = flask.request.args.get('flatten')
-  if not flatten:
-    flatten = 'true'
-  if flatten == 'false':
-    output = utils.unflatten_ds(output)
+  target_keys_arg = flask.request.args.get('target_keys')
+  if target_keys_arg is None:
+    target_params['target_keys'] = None
   else:
-    output = utils.flatten_ds(output, sep='/')
+    target_params['target_keys'] = [x.strip() for x in target_keys_arg.split(',')]
 
-  return flask.jsonify(output)
+  target_filters_arg = flask.request.args.get('target_filters')
+  target_filters = {}
+  if target_filters_arg is not None:
+    for target_filter_kv in target_filters_arg.split(','):
+      target_filter_kv = str(target_filter_kv.strip())
+      filter_key, filter_regex = [str(x) for x in target_filter_kv.split(':')]
+      target_filters[filter_key] = re.compile(filter_regex)
+
+  responses = []
+  response_http_code = 200
+
+  for search_val in search_vals:
+    target_url = base_url + search_val
+
+    # if no keys specified - just send the urls
+    if target_params['target_keys'] is None:
+      responses.append({'url': target_url})
+      continue
+
+    # load the response
+    response = json.loads(store_obj.get_key(search_val))
+
+    # check if this response matches the filter
+    if target_filters:
+      response_matches = False
+      for filter_key, filter_regex in target_filters.iteritems():
+        if filter_key not in response:
+          continue
+
+        response_value = response[filter_key]
+        if not re.match(filter_regex, response_value):
+          continue
+
+        response_matches = True # reached here - at least one filter matched
+        break
+
+      if not response_matches:
+        continue
+
+    if '*' not in target_params['target_keys']:
+      # get specific keys
+      culled_response = {}
+      invalid_keys = []
+
+      for target_key in target_params['target_keys']:
+        # handle nested keys
+        # country.state.city = e.g. {'country': {'state': {'city': 'X'}}}
+        nesting = target_key.split('.')
+        invalid_key = None
+
+        if len(nesting) == 1:
+          if target_key not in response:
+            invalid_key = target_key
+          if invalid_key is None:
+            culled_response[target_key] = response[target_key]
+        else:
+          final_value = None
+          depth_reached = None
+          nested_response = response
+
+          for nested_key in nesting:
+            if depth_reached is None:
+              depth_reached = nested_key
+            else:
+              depth_reached += '.' + nested_key
+
+            if nested_key not in nested_response:
+              invalid_key = depth_reached
+              break
+
+            final_value = nested_response[nested_key]
+            nested_response = final_value
+
+          if invalid_key is None:
+            culled_response[target_key] = final_value
+
+        if invalid_key is not None:
+          invalid_keys.append(invalid_key)
+
+      if invalid_keys:
+        response_http_code = 400
+        culled_response['error'] = 'invalid_keys: %s' % str(invalid_keys)
+
+      responses.append({'data': culled_response, 'url': target_url})
+    else:
+      responses.append({'data': response, 'url': target_url})
+
+  print json.dumps(responses, indent=2)
+  http_response = flask.jsonify({'output': responses})
+  http_response.status_code = response_http_code
+  return http_response
 
 @app.route(base_uri_db + '/<db>/', methods = ['GET'])
 def get_db_views(db):
