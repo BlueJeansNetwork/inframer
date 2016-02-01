@@ -1,6 +1,6 @@
 Inframer - collect, store, analyze - your infrastructure information
 
-*Made breaking changes which impact README - expect README to be fixed by 2016-02-02*
+**Made breaking changes which impact README - expect README to be fixed by 2016-02-02**
 
 ### Introduction
 
