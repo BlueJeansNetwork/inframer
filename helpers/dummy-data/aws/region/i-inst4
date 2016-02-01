@@ -45,7 +45,7 @@
     "state_reason": "None",
     "subnet_id": "subnet-d44bd",
     "tags": {
-      "Name": "dummy-vm-1",
+      "Name": "dummy-vm-4",
       "Project": "testproj",
       "env": "qa"
     },
