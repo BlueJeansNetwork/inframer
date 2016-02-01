@@ -160,7 +160,6 @@ def get_db_data(db, view):
     else:
       responses.append({'data': response, 'url': target_url})
 
-  print json.dumps(responses, indent=2)
   http_response = flask.jsonify({'output': responses})
   http_response.status_code = response_http_code
   return http_response
