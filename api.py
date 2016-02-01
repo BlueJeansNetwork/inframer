@@ -53,57 +53,67 @@ def get_db_data(db, view):
   search_pattern = '/'.join([base_uri_db, db, view])
 
   # add filter if any
-  key_pattern_str = flask.request.args.get('key_pattern')
-  if key_pattern_str is None:
-    key_pattern_str = '*'
+  #key_pattern_str = flask.request.args.get('key_pattern')
+  #if key_pattern_str is None:
+  #  key_pattern_str = '*'
 
-  if not key_pattern_str.startswith('/'):
-    key_pattern_str = '/*' + key_pattern_str + '*'
-  search_pattern += key_pattern_str
-  search_vals = store_obj.search_keys(search_pattern)
-
+  #if not key_pattern_str.startswith('/'):
+  #  key_pattern_str = '/*' + key_pattern_str + '*'
+  #search_pattern += key_pattern_str
+  search_vals = store_obj.search_keys(search_pattern + '/*') 
+ 
   target_params = {
-    'target_keys': [],
-    'target_filters': {},
+    'keys': [],
+    'filters': {},
+    'maxrecords': -1
   }
 
-  target_keys_arg = flask.request.args.get('target_keys')
-  if target_keys_arg is None:
-    target_params['target_keys'] = None
+  keys_arg = flask.request.args.get('keys')
+  if keys_arg is None:
+    target_params['keys'] = None
   else:
-    target_params['target_keys'] = [x.strip() for x in target_keys_arg.split(',')]
+    target_params['keys'] = [str(x.strip()) for x in keys_arg.split(',')]
 
-  target_filters_arg = flask.request.args.get('target_filters')
-  target_filters = {}
-  if target_filters_arg is not None:
-    for target_filter_kv in target_filters_arg.split(','):
-      target_filter_kv = str(target_filter_kv.strip())
-      filter_key, filter_regex = [str(x) for x in target_filter_kv.split(':')]
-      target_filters[filter_key] = re.compile(filter_regex)
+  filters_arg = flask.request.args.get('filters')
+  filters = {}
+  if filters_arg is not None:
+    for filter_kv in filters_arg.split(','):
+      filter_kv = str(filter_kv.strip())
+      filter_key, filter_regex = [str(x) for x in filter_kv.split(':')]
+      filters[filter_key] = re.compile(filter_regex)
+  
+  maxrecords_arg = flask.request.args.get('maxrecords')
+  if maxrecords_arg is not None:
+    target_params['maxrecords'] = int(maxrecords_arg)
 
   responses = []
   response_http_code = 200
+  count = 0
 
   for search_val in search_vals:
+    if target_params['maxrecords'] != -1 and count >= target_params['maxrecords']:
+      break
+
     target_url = base_url + search_val
 
     # if no keys specified - just send the urls
-    if target_params['target_keys'] is None:
+    if target_params['keys'] is None:
       responses.append({'url': target_url})
+      count += 1
       continue
 
     # load the response
     response = json.loads(store_obj.get_key(search_val))
 
     # check if this response matches the filter
-    if target_filters:
+    if filters:
       response_matches = False
-      for filter_key, filter_regex in target_filters.iteritems():
+      for filter_key, filter_regex in filters.iteritems():
         if filter_key not in response:
           continue
 
         response_value = response[filter_key]
-        if not re.match(filter_regex, response_value):
+        if not re.search(filter_regex, response_value):
           continue
 
         response_matches = True # reached here - at least one filter matched
@@ -112,12 +122,12 @@ def get_db_data(db, view):
       if not response_matches:
         continue
 
-    if '*' not in target_params['target_keys']:
+    if '*' not in target_params['keys']:
       # get specific keys
       culled_response = {}
       invalid_keys = []
 
-      for target_key in target_params['target_keys']:
+      for target_key in target_params['keys']:
         # handle nested keys
         # country.state.city = e.g. {'country': {'state': {'city': 'X'}}}
         nesting = target_key.split('.')
@@ -159,6 +169,8 @@ def get_db_data(db, view):
       responses.append({'data': culled_response, 'url': target_url})
     else:
       responses.append({'data': response, 'url': target_url})
+
+    count += 1
 
   http_response = flask.jsonify({'output': responses})
   http_response.status_code = response_http_code
