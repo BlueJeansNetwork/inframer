@@ -1,9 +1,90 @@
 #!/usr/bin/env python
 
 import os
+import re
 import ConfigParser
 import importlib
 from collections import OrderedDict
+
+import jmespath
+
+
+def _jmespath_match_filters_str(target_ds, filters, str_filter_sep=',', 
+                                str_filter_kv_sep=':'):
+  """ Do jmespath match for str - todo - add doctests """
+
+  filters_arr = filters.split(str_filter_sep)
+  match_results = []
+
+  for filter_kv in filters_arr:
+    filter_key, filter_val = filter_kv.split(str_filter_kv_sep)
+    filter_val = filter_val.strip()
+    search_val = jmespath.search(filter_key, target_ds)
+    print filter_key, filter_val, search_val
+
+    if isinstance(search_val, list):
+      search_val = [str(x) for x in search_val]
+      if filter_val in search_val:
+        match_results.append(True)
+    elif not isinstance(search_val, dict):
+      search_val = str(search_val)
+      if re.search(re.compile(filter_val), str(search_val)):
+        match_results.append(True)
+      else:
+        match_results.append(False)
+    else:
+      match_results.append(False)
+
+  return match_results
+
+def _jmespath_match_filters_list(target_ds, filters, str_filter_sep=',',
+                                 str_filter_kv_sep=':'):
+  """ Do jmespath match for list - todo - add doctests """
+
+  all_match_results = []
+  for filter_data in filters:
+    match_results = []
+    if isinstance(filter_data, str):
+      results = _jmespath_match_filters_str(target_ds, filter_data,
+                                            str_filter_sep, str_filter_kv_sep)
+      if results:
+        match_results.append(results[0])
+    else:
+      filter_key = filter_data['key']
+      search_val = jmespath.search(filter_key, target_ds)
+
+      for op_key in ['matches', 'not_matches']:
+        if op_key in filter_data:
+          result = False
+          if isinstance(search_val, list):
+            search_val = [str(x) for x in search_val]
+            if any(x for x in filter_data[op_key] if str(x) in search_val):
+              result = True
+          else:
+            search_val = str(search_val)
+            if not filter_data['regex']:
+              if any(x for x in filter_data[op_key] if x == search_val):
+                result = True
+            else:
+              if any(x for x in filter_data[op_key] if re.search(re.compile(x),
+                                                                 search_val)):
+                result = True
+        if op_key == 'not_matches':
+          result = not result
+        match_results.append(result)
+
+    all_match_results.append(match_results)
+
+  return all_match_results
+
+def jmespath_match(target_ds, filters, str_filter_sep=',', str_filter_kv_sep=':'):
+  if isinstance(filters, str):
+    return _jmespath_match_filters_str(target_ds, filters, str_filter_sep, 
+                                       str_filter_kv_sep)
+  elif isinstance(filters, list):
+    return _jmespath_match_filters_list(target_ds, filters, str_filter_sep, 
+                                        str_filter_kv_sep)
+  return []
 
 def load_store(cfg):
   store_mod_name = 'stores.%s_store' % cfg['store']['name']
