@@ -91,5 +91,5 @@ def load_cfg(cfg_dir, cfg_filename='cfg.ini'):
 
 def load_base_cfg(component, cfg_filename='cfg.ini'):
   curr_dir = os.path.dirname(os.path.abspath(__file__))
-  target_dir = os.path.join(curr_dir, '..', component)
+  target_dir = os.path.join(curr_dir, component)
   return load_cfg(target_dir, cfg_filename)

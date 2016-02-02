@@ -5,7 +5,7 @@ import re
 
 import jmespath
 import flask
-import inframer.util.utils as utils
+import inframer.utils as utils
 
 # load the cfg
 CFG = utils.load_base_cfg('config')
