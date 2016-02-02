@@ -30,21 +30,25 @@ def get_db_target_data(db, view, varargs):
   output = json.loads(STORE_OBJ.get_key(search_key))
 
   # get the key separator
-  key_sep = flask.request.args.get('key_sep')
-  if not key_sep:
-    key_sep = '/'
+  sep = flask.request.args.get('sep')
+  if not sep:
+    sep = '.'
 
   # check if we need a subset of the ds
   qkey = flask.request.args.get('key')
   if qkey:
-    output = utils.get_dict_subset(output, qkey, key_sep)
+    output = utils.get_dict_subset(output, qkey, sep)
 
   # flatten ds if required
   flatten = flask.request.args.get('flatten')
   if flatten and flatten == 'true':
-    output = utils.flatten_ds(output, sep=key_sep)
+    output = utils.flatten_ds(output, sep=sep)
 
   return flask.jsonify({varargs: output})
+
+@app.route(BASE_URI_DB + '/<db>/<view>/help', methods = ['GET'])
+def get_db_data_help(db, view):
+  return flask.jsonify({"help": "Add README.md help link"})
 
 @app.route(BASE_URI_DB + '/<db>/<view>/', methods = ['GET'])
 def get_db_data(db, view):
@@ -61,7 +65,8 @@ def get_db_data(db, view):
     'maxrecords': -1,
     'reverse_match': False,
     'sort_on': None,
-    'reverse': False
+    'reverse': False,
+    'summary': False
   }
 
   keys_arg = flask.request.args.get('keys')
@@ -100,15 +105,21 @@ def get_db_data(db, view):
     if reverse_arg == 'true':
       target_params['reverse'] = True
 
+  summary_arg = flask.request.args.get('summary')
+  if summary_arg is not None:
+    if summary_arg == 'true':
+      target_params['summary'] = True
+
   print json.dumps(target_params, indent=2)
 
   responses = []
   response_http_code = 200
-  count = 0
+  record_count = 0
+  err_count = 0
 
   for search_result in search_results:
     # iterate through search results, filter out wanted, extract out required keys
-    if target_params['maxrecords'] != -1 and count >= target_params['maxrecords']:
+    if target_params['maxrecords'] != -1 and record_count >= target_params['maxrecords']:
       break
 
     target_url = BASE_URL + search_result
@@ -116,7 +127,7 @@ def get_db_data(db, view):
     # if no keys specified - just send the urls
     if target_params['keys'] is None:
       responses.append({'url': target_url})
-      count += 1
+      record_count += 1
       continue
 
     # load the response
@@ -169,6 +180,7 @@ def get_db_data(db, view):
           if 'invalid_keys' not in errors:
             errors['invalid_keys'] = []
           errors['invalid_keys'].append(target_key)
+          err_count += 1
         else:
           culled_response[target_key] = target_value
 
@@ -185,9 +197,9 @@ def get_db_data(db, view):
 
     if errors:
       response_http_code = 400
-      responses[count]['errors'] = errors
+      responses[record_count]['errors'] = errors
 
-    count += 1
+    record_count += 1
 
   # sort the output if sort_on provided
   if target_params['sort_on'] is not None:
@@ -197,7 +209,15 @@ def get_db_data(db, view):
   if target_params['reverse']:
     responses = responses[::-1]
 
-  http_response = flask.jsonify({'output': responses})
+  summary = {
+    'total': len(responses),
+    'errors': err_count,
+    'success': len(responses) - err_count
+  }
+  if target_params['summary']:
+    return flask.jsonify({'summary': summary})
+
+  http_response = flask.jsonify({'output': responses, 'summary': summary})
   http_response.status_code = response_http_code
   return http_response
 
