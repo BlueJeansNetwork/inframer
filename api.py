@@ -160,11 +160,11 @@ def get_db_data(db, view):
         'data': response
       })
 
-    count += 1
-
     if errors:
       response_http_code = 400
       responses[count]['errors'] = errors
+
+    count += 1
 
   # sort the output if sort_on provided
   if target_params['sort_on'] is not None:
