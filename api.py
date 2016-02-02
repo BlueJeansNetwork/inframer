@@ -60,7 +60,7 @@ def get_db_data(db, view):
     'maxrecords': -1,
     'reverse_match': False,
     'sort_on': None,
-    'sort_reverse': False
+    'reverse': False
   }
 
   keys_arg = flask.request.args.get('keys')
@@ -90,10 +90,10 @@ def get_db_data(db, view):
   if sort_on_arg is not None:
     target_params['sort_on'] = sort_on_arg
 
-  sort_reverse_arg = flask.request.args.get('sort_reverse')
-  if sort_reverse_arg is not None:
-    if sort_reverse_arg == 'true':
-      target_params['sort_reverse'] = True
+  reverse_arg = flask.request.args.get('reverse')
+  if reverse_arg is not None:
+    if reverse_arg == 'true':
+      target_params['reverse'] = True
 
   responses = []
   response_http_code = 200
@@ -174,15 +174,11 @@ def get_db_data(db, view):
 
   # sort the output if sort_on provided
   if target_params['sort_on'] is not None:
-    # could sort once and reverse if flag is on - but don't want to act clever
-    # and incur the cost
-    if target_params['sort_reverse']:
-      responses = sorted(responses,
-                         key=lambda k: k['data'][target_params['sort_on']],
-                         reverse=True)
-    else:
-      responses = sorted(responses,
-                         key=lambda k: k['data'][target_params['sort_on']])
+    responses = sorted(responses,
+                       key=lambda k: k['data'][target_params['sort_on']])
+
+  if target_params['reverse']:
+    responses = responses[::-1]
 
   http_response = flask.jsonify({'output': responses})
   http_response.status_code = response_http_code
