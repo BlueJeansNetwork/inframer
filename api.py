@@ -1,34 +1,33 @@
 #!/usr/bin/env python
 
-import os
-import sys
 import json
-import flask
-import requests
 import re
-from util import utils
+
+import jmespath
+import flask
+import inframer.util.utils as utils
 
 # load the cfg
-cfg = utils.load_base_cfg('config')
+CFG = utils.load_base_cfg('config')
 
 # create the store obj
-store_obj = utils.load_store(cfg)
+STORE_OBJ = utils.load_store(CFG)
 
 # create base uris and urls to be used
-base_url = 'http://%s:%s' % (cfg['api']['host'], cfg['api']['port'])
-base_uri = '/inframer/api/v1'
-base_uri_db = base_uri + '/db'
+BASE_URL = 'http://%s:%s' % (CFG['api']['host'], CFG['api']['port'])
+BASE_URI = '/inframer/api/v1'
+BASE_URI_DB = BASE_URI + '/db'
 
 app = flask.Flask(__name__)
 
-@app.route(base_uri_db + '/<db>/<view>/<path:varargs>', methods = ['GET'])
+@app.route(BASE_URI_DB + '/<db>/<view>/<path:varargs>', methods=['GET'])
 def get_db_target_data(db, view, varargs):
   # load the search key and values
-  search_key = '/'.join([base_uri_db, db, view, varargs])
+  search_key = '/'.join([BASE_URI_DB, db, view, varargs])
   search_key = search_key.rstrip('/')
 
   # get the value
-  output = json.loads(store_obj.get_key(search_key))
+  output = json.loads(STORE_OBJ.get_key(search_key))
 
   # get the key separator
   key_sep = flask.request.args.get('key_sep')
@@ -47,25 +46,20 @@ def get_db_target_data(db, view, varargs):
 
   return flask.jsonify({varargs: output})
 
-@app.route(base_uri_db + '/<db>/<view>/', methods = ['GET'])
+@app.route(BASE_URI_DB + '/<db>/<view>/', methods = ['GET'])
 def get_db_data(db, view):
   # load the search key and values
-  search_pattern = '/'.join([base_uri_db, db, view])
+  search_pattern = '/'.join([BASE_URI_DB, db, view])
 
-  # add filter if any
-  #key_pattern_str = flask.request.args.get('key_pattern')
-  #if key_pattern_str is None:
-  #  key_pattern_str = '*'
+  search_results = STORE_OBJ.search_keys(search_pattern + '/*')
 
-  #if not key_pattern_str.startswith('/'):
-  #  key_pattern_str = '/*' + key_pattern_str + '*'
-  #search_pattern += key_pattern_str
-  search_vals = store_obj.search_keys(search_pattern + '/*') 
- 
+  # extract and prep the target params
   target_params = {
     'keys': [],
     'filters': {},
-    'maxrecords': -1
+    'maxrecords': -1,
+    'reverse_match': False,
+    'sort_on': None
   }
 
   keys_arg = flask.request.args.get('keys')
@@ -81,20 +75,30 @@ def get_db_data(db, view):
       filter_kv = str(filter_kv.strip())
       filter_key, filter_regex = [str(x) for x in filter_kv.split(':')]
       filters[filter_key] = re.compile(filter_regex)
-  
+
   maxrecords_arg = flask.request.args.get('maxrecords')
   if maxrecords_arg is not None:
     target_params['maxrecords'] = int(maxrecords_arg)
+
+  reverse_match_arg = flask.request.args.get('reverse_match')
+  if reverse_match_arg is not None:
+    if reverse_match_arg == 'true':
+      target_params['reverse_match'] = True
+
+  sort_on_arg = flask.request.args.get('sort_on')
+  if sort_on_arg is not None:
+    target_params['sort_on'] = sort_on_arg
 
   responses = []
   response_http_code = 200
   count = 0
 
-  for search_val in search_vals:
+  for search_result in search_results:
+    # iterate through search results, filter out wanted, extract out required keys
     if target_params['maxrecords'] != -1 and count >= target_params['maxrecords']:
       break
 
-    target_url = base_url + search_val
+    target_url = BASE_URL + search_result
 
     # if no keys specified - just send the urls
     if target_params['keys'] is None:
@@ -103,112 +107,107 @@ def get_db_data(db, view):
       continue
 
     # load the response
-    response = json.loads(store_obj.get_key(search_val))
+    response = json.loads(STORE_OBJ.get_key(search_result))
 
     # check if this response matches the filter
+    errors = {}
     if filters:
+      # filters provided - check matches
       response_matches = False
       for filter_key, filter_regex in filters.iteritems():
-        if filter_key not in response:
-          continue
+        response_value = jmespath.search(filter_key, response)
 
-        response_value = response[filter_key]
+        if response_value is None:
+          continue
         if not re.search(filter_regex, response_value):
           continue
 
         response_matches = True # reached here - at least one filter matched
         break
 
-      if not response_matches:
-        continue
+      # if reverse_match is true - skip this record if it matches
+      if target_params['reverse_match']:
+        if response_matches:
+          continue
+      else:
+        # if reverse match is false - skip this record if it does not match
+        if not response_matches:
+          continue
 
+    # get the required keys
     if '*' not in target_params['keys']:
       # get specific keys
       culled_response = {}
       invalid_keys = []
 
       for target_key in target_params['keys']:
-        # handle nested keys
-        # country.state.city = e.g. {'country': {'state': {'city': 'X'}}}
-        nesting = target_key.split('.')
-        invalid_key = None
-
-        if len(nesting) == 1:
-          if target_key not in response:
-            invalid_key = target_key
-          if invalid_key is None:
-            culled_response[target_key] = response[target_key]
+        target_value = jmespath.search(target_key, response)
+        if target_value is None:
+          if 'invalid_keys' not in errors:
+            errors['invalid_keys'] = []
+          errors['invalid_keys'].append(target_key)
         else:
-          final_value = None
-          depth_reached = None
-          nested_response = response
+          culled_response[target_key] = target_value
 
-          for nested_key in nesting:
-            if depth_reached is None:
-              depth_reached = nested_key
-            else:
-              depth_reached += '.' + nested_key
-
-            if nested_key not in nested_response:
-              invalid_key = depth_reached
-              break
-
-            final_value = nested_response[nested_key]
-            nested_response = final_value
-
-          if invalid_key is None:
-            culled_response[target_key] = final_value
-
-        if invalid_key is not None:
-          invalid_keys.append(invalid_key)
-
-      if invalid_keys:
-        response_http_code = 400
-        culled_response['error'] = 'invalid_keys: %s' % str(invalid_keys)
-
-      responses.append({'data': culled_response, 'url': target_url})
+      responses.append({
+        'url': target_url,
+        'data': culled_response
+      })
     else:
-      responses.append({'data': response, 'url': target_url})
+      # get all keys
+      responses.append({
+        'url': target_url,
+        'data': response
+      })
 
     count += 1
+
+    if errors:
+      response_http_code = 400
+      responses[count]['errors'] = errors
+
+  # sort the output if sort_on provided
+  if target_params['sort_on'] is not None:
+    responses = sorted(responses,
+                       key=lambda k: k['data'][target_params['sort_on']])
 
   http_response = flask.jsonify({'output': responses})
   http_response.status_code = response_http_code
   return http_response
 
-@app.route(base_uri_db + '/<db>/', methods = ['GET'])
+@app.route(BASE_URI_DB + '/<db>/', methods = ['GET'])
 def get_db_views(db):
   # get unique views for this db
   output = {db: []}
-  db_views = store_obj.get_db_views(db)
+  db_views = STORE_OBJ.get_db_views(db)
 
   # construct url for each view
   for view in db_views:
-    uri = '/'.join([base_uri_db, db, view])
-    output[db].append(base_url + uri)
+    uri = '/'.join([BASE_URI_DB, db, view])
+    output[db].append(BASE_URL + uri)
 
   return flask.jsonify(output)
 
-@app.route(base_uri_db + '/', methods = ['GET'])
+@app.route(BASE_URI_DB + '/', methods = ['GET'])
 def get_dbs():
   # get all database names
-  dbs = store_obj.get_all_dbs()
+  dbs = STORE_OBJ.get_all_dbs()
   output = {}
   for db in dbs:
-    uri = '/'.join([base_uri_db, db])
-    output[db] = base_url + uri
+    uri = '/'.join([BASE_URI_DB, db])
+    output[db] = BASE_URL + uri
   return flask.jsonify(output)
 
-@app.route(base_uri + '/', methods = ['GET'])
+@app.route(BASE_URI + '/', methods = ['GET'])
 def get_base_views():
-  views = store_obj.get_inframer_views()
+  views = STORE_OBJ.get_inframer_views()
   output = {'inframer': []}
   for view in views:
-    output['inframer'].append(base_url + base_uri + '/' + view)
+    output['inframer'].append(BASE_URL + BASE_URI + '/' + view)
   return flask.jsonify(output)
 
 if __name__ == '__main__':
   debug = False
-  if cfg['api']['debug'] == 'true':
+  if CFG['api']['debug'] == 'true':
     debug = True
-  app.run(host=cfg['api']['host'], port=int(cfg['api']['port']), debug=debug)
+  app.run(host=CFG['api']['host'], port=int(CFG['api']['port']), debug=debug)
