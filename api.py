@@ -57,6 +57,7 @@ def get_db_data(db, view):
   target_params = {
     'keys': [],
     'filters': {},
+    'filter_type': 'OR',
     'maxrecords': -1,
     'reverse_match': False,
     'sort_on': None,
@@ -77,6 +78,10 @@ def get_db_data(db, view):
       filter_key, filter_regex = [str(x) for x in filter_kv.split(':')]
       filters[filter_key] = re.compile(filter_regex)
 
+  filter_type_arg = flask.request.args.get('filter_type')
+  if filter_type_arg is not None:
+    target_params['filter_type'] = filter_type_arg
+
   maxrecords_arg = flask.request.args.get('maxrecords')
   if maxrecords_arg is not None:
     target_params['maxrecords'] = int(maxrecords_arg)
@@ -94,6 +99,8 @@ def get_db_data(db, view):
   if reverse_arg is not None:
     if reverse_arg == 'true':
       target_params['reverse'] = True
+
+  print json.dumps(target_params, indent=2)
 
   responses = []
   response_http_code = 200
@@ -118,18 +125,28 @@ def get_db_data(db, view):
     # check if this response matches the filter
     errors = {}
     if filters:
-      # filters provided - check matches
       response_matches = False
+      nfilters = len(filters)
+      matched_filters = 0
       for filter_key, filter_regex in filters.iteritems():
         response_value = jmespath.search(filter_key, response)
 
+        # skip if not matched
         if response_value is None:
           continue
         if not re.search(filter_regex, response_value):
           continue
 
-        response_matches = True # reached here - at least one filter matched
-        break
+        matched_filters += 1
+        if target_params['filter_type'] == 'OR':
+          response_matches = True
+          break
+
+      if target_params['filter_type'] == 'AND':
+        if matched_filters != nfilters:
+          response_matches = False
+        else:
+          response_matches = True
 
       # if reverse_match is true - skip this record if it matches
       if target_params['reverse_match']:

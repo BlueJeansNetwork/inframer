@@ -2,7 +2,7 @@
   "us-west-2/i-inst3": {
     "_in_monitoring_element": "False",
     "_previous_state": "None",
-    "_state": "running(16)",
+    "_state": "stopped(80)",
     "ami_launch_index": "0",
     "architecture": "x86_64",
     "block_device_mapping": "{u'/dev/sdf': <boto.ec2.blockdevicemapping.BlockDeviceType object at 0x7250>, u'/dev/sda1': <boto.ec2.blockdevicemapping.BlockDeviceType object at 0x1d0>}",
@@ -41,7 +41,7 @@
     "root_device_type": "ebs",
     "sourceDestCheck": "true",
     "spot_instance_request_id": "None",
-    "state": "running",
+    "state": "stopped",
     "state_reason": "None",
     "subnet_id": "subnet-d44bd",
     "tags": {

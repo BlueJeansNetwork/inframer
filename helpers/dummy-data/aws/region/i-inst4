@@ -41,7 +41,7 @@
     "root_device_type": "ebs",
     "sourceDestCheck": "true",
     "spot_instance_request_id": "None",
-    "state": "stopped",
+    "state": "running",
     "state_reason": "None",
     "subnet_id": "subnet-d44bd",
     "tags": {

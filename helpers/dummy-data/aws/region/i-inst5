@@ -3,7 +3,7 @@
     "_in_monitoring_element": "False",
     "_placement": "us-west-2c",
     "_previous_state": "None",
-    "_state": "running(16)",
+    "_state": "stopped(80)",
     "ami_launch_index": "0",
     "architecture": "x86_64",
     "block_device_mapping": "{u'/dev/sdf': <boto.ec2.blockdevicemapping.BlockDeviceType object at 0x7250>, u'/dev/sda1': <boto.ec2.blockdevicemapping.BlockDeviceType object at 0x1d0>}",
