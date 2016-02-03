@@ -206,7 +206,7 @@ def get_db_data(db, view):
 
   # sort the output if sort_on provided
   if target_params['sort_on'] is not None:
-    if all(x for x in responses if target_params['sort_on'] in x['data']):
+    if all(target_params['sort_on'] in x['data'] for x in responses):
       responses = sorted(responses,
                          key=lambda k: k['data'][target_params['sort_on']])
 
