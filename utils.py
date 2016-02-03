@@ -52,6 +52,9 @@ def _jmespath_match_filters_list(target_ds, filters, **kwargs):
       filter_key = filter_data['key']
       search_val = jmespath.search(filter_key, target_ds)
 
+      if search_val is None:
+        match_results[filter_data['id']] = False
+
       chk_op_keys = []
 
       matches_chk_result = False
