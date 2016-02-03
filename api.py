@@ -50,13 +50,9 @@ def get_db_target_data(db, view, varargs):
 def get_db_data_help(db, view):
   return flask.jsonify({"help": "Add README.md help link"})
 
-@app.route(BASE_URI_DB + '/<db>/<view>/', methods = ['GET'])
+@app.route(BASE_URI_DB + '/<db>/<view>/', methods = ['GET', 'POST'])
 def get_db_data(db, view):
-  # load the search key and values
-  search_pattern = '/'.join([BASE_URI_DB, db, view])
-
-  search_results = STORE_OBJ.search_keys(search_pattern + '/*')
-
+  # get the headers
   # extract and prep the target params
   target_params = {
     'keys': [],
@@ -69,48 +65,62 @@ def get_db_data(db, view):
     'summary': False
   }
 
-  keys_arg = flask.request.args.get('keys')
-  if keys_arg is None:
-    target_params['keys'] = None
-  else:
-    target_params['keys'] = [str(x.strip()) for x in keys_arg.split(',')]
+  filters = []
+  if flask.request.method == 'GET':
+    keys_arg = flask.request.args.get('keys')
+    if keys_arg is None:
+      target_params['keys'] = None
+    else:
+      target_params['keys'] = [str(x.strip()) for x in keys_arg.split(',')]
 
-  filters_arg = flask.request.args.get('filters')
-  filters = {}
-  if filters_arg is not None:
-    for filter_kv in filters_arg.split(','):
-      filter_kv = str(filter_kv.strip())
-      filter_key, filter_regex = [str(x) for x in filter_kv.split(':')]
-      filters[filter_key] = re.compile(filter_regex)
+    filters_arg = flask.request.args.get('filters')
+    if filters_arg is not None:
+      for filter_kv in filters_arg.split(','):
+        filter_kv = str(filter_kv.strip())
+        filter_key, filter_regex = [str(x) for x in filter_kv.split(':')]
+        filters.append({
+          "id": filter_key, 
+          "key": filter_key,
+          "matches": [filter_regex],
+          "regex": True
+        })
 
-  filter_type_arg = flask.request.args.get('filter_type')
-  if filter_type_arg is not None:
-    target_params['filter_type'] = filter_type_arg
+    filter_type_arg = flask.request.args.get('filter_type')
+    if filter_type_arg is not None:
+      target_params['filter_type'] = filter_type_arg
 
-  maxrecords_arg = flask.request.args.get('maxrecords')
-  if maxrecords_arg is not None:
-    target_params['maxrecords'] = int(maxrecords_arg)
+    maxrecords_arg = flask.request.args.get('maxrecords')
+    if maxrecords_arg is not None:
+      target_params['maxrecords'] = int(maxrecords_arg)
 
-  reverse_match_arg = flask.request.args.get('reverse_match')
-  if reverse_match_arg is not None:
-    if reverse_match_arg == 'true':
-      target_params['reverse_match'] = True
+    reverse_match_arg = flask.request.args.get('reverse_match')
+    if reverse_match_arg is not None:
+      if reverse_match_arg == 'true':
+        target_params['reverse_match'] = True
 
-  sort_on_arg = flask.request.args.get('sort_on')
-  if sort_on_arg is not None:
-    target_params['sort_on'] = sort_on_arg
+    sort_on_arg = flask.request.args.get('sort_on')
+    if sort_on_arg is not None:
+      target_params['sort_on'] = sort_on_arg
 
-  reverse_arg = flask.request.args.get('reverse')
-  if reverse_arg is not None:
-    if reverse_arg == 'true':
-      target_params['reverse'] = True
+    reverse_arg = flask.request.args.get('reverse')
+    if reverse_arg is not None:
+      if reverse_arg == 'true':
+        target_params['reverse'] = True
 
-  summary_arg = flask.request.args.get('summary')
-  if summary_arg is not None:
-    if summary_arg == 'true':
-      target_params['summary'] = True
+    summary_arg = flask.request.args.get('summary')
+    if summary_arg is not None:
+      if summary_arg == 'true':
+        target_params['summary'] = True
 
-  print json.dumps(target_params, indent=2)
+  elif flask.request.method == 'POST':
+    target_json = flask.request.get_json()
+    target_params.update(target_json)
+    if 'filters' in target_params:
+      filters = target_params['filters']
+
+  # load the search key and values
+  search_pattern = '/'.join([BASE_URI_DB, db, view])
+  search_results = STORE_OBJ.search_keys(search_pattern + '/*')
 
   responses = []
   response_http_code = 200
@@ -136,37 +146,30 @@ def get_db_data(db, view):
     # check if this response matches the filter
     errors = {}
     if filters:
-      response_matches = False
-      nfilters = len(filters)
-      matched_filters = 0
-      for filter_key, filter_regex in filters.iteritems():
-        response_value = jmespath.search(filter_key, response)
+      include_this_record = False
 
-        # skip if not matched
-        if response_value is None:
-          continue
-        if not re.search(filter_regex, response_value):
-          continue
+      match_results = utils.jmespath_match(response, filters)
+      print match_results
+      any_true = any(match_results.values())
+      all_true = all(match_results.values())
 
-        matched_filters += 1
+      if target_params['reverse_match'] is False:
         if target_params['filter_type'] == 'OR':
-          response_matches = True
-          break
-
-      if target_params['filter_type'] == 'AND':
-        if matched_filters != nfilters:
-          response_matches = False
+          if any_true:
+            include_this_record = True
         else:
-          response_matches = True
-
-      # if reverse_match is true - skip this record if it matches
-      if target_params['reverse_match']:
-        if response_matches:
-          continue
+          if all_true:
+            include_this_record = True
       else:
-        # if reverse match is false - skip this record if it does not match
-        if not response_matches:
-          continue
+        if target_params['filter_type'] == 'OR':
+          if not any_true:
+            include_this_record = True
+        else:
+          if not all_true:
+            include_this_record = True
+      
+      if not include_this_record:
+        continue
 
     # get the required keys
     if '*' not in target_params['keys']:

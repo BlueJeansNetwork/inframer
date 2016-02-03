@@ -8,19 +8,21 @@ from collections import OrderedDict
 
 import jmespath
 
-
-def _jmespath_match_filters_str(target_ds, filters, str_filter_sep=',', 
-                                str_filter_kv_sep=':'):
+def _jmespath_match_filters_str(target_ds, filters, **kwargs):
   """ Do jmespath match for str - todo - add doctests """
+  opt_attrs = {
+    'str_filter_sep': ',',
+    'str_filter_kv_sep': ':'
+  }
+  opt_attrs.update(kwargs)
 
-  filters_arr = filters.split(str_filter_sep)
+  filters_arr = filters.split(opt_attrs['str_filter_sep'])
   match_results = []
 
   for filter_kv in filters_arr:
-    filter_key, filter_val = filter_kv.split(str_filter_kv_sep)
+    filter_key, filter_val = filter_kv.split(opt_attrs['str_filter_kv_sep'])
     filter_val = filter_val.strip()
     search_val = jmespath.search(filter_key, target_ds)
-    print filter_key, filter_val, search_val
 
     if isinstance(search_val, list):
       search_val = [str(x) for x in search_val]
@@ -37,23 +39,35 @@ def _jmespath_match_filters_str(target_ds, filters, str_filter_sep=',',
 
   return match_results
 
-def _jmespath_match_filters_list(target_ds, filters, str_filter_sep=',',
-                                 str_filter_kv_sep=':'):
+def _jmespath_match_filters_list(target_ds, filters, **kwargs):
   """ Do jmespath match for list - todo - add doctests """
 
-  all_match_results = []
+  #all_match_results = []
+  match_results = {}
   for filter_data in filters:
-    match_results = []
     if isinstance(filter_data, str):
-      results = _jmespath_match_filters_str(target_ds, filter_data,
-                                            str_filter_sep, str_filter_kv_sep)
-      if results:
-        match_results.append(results[0])
+      results = _jmespath_match_filters_str(target_ds, filter_data, **kwargs)
+      match_results[filter_data['id']] = results[0]
     else:
       filter_key = filter_data['key']
       search_val = jmespath.search(filter_key, target_ds)
 
-      for op_key in ['matches', 'not_matches']:
+      chk_op_keys = []
+
+      matches_chk_result = False
+      not_matches_chk_result = False
+
+      if 'matches' in filter_data:
+        chk_op_keys.append('matches')
+      else:
+        matches_chk_result = True
+
+      if 'not_matches' in filter_data:
+        chk_op_keys.append('not_matches')
+      else:
+        not_matches_chk_result = True
+
+      for op_key in chk_op_keys:
         if op_key in filter_data:
           result = False
           if isinstance(search_val, list):
@@ -69,22 +83,20 @@ def _jmespath_match_filters_list(target_ds, filters, str_filter_sep=',',
               if any(x for x in filter_data[op_key] if re.search(re.compile(x),
                                                                  search_val)):
                 result = True
-        if op_key == 'not_matches':
-          result = not result
-        match_results.append(result)
 
-    all_match_results.append(match_results)
+          if op_key == 'matches':
+            matches_chk_result = result
+          elif op_key == 'not_matches':
+            not_matches_chk_result = not result
 
-  return all_match_results
+      match_results[filter_data['id']] = matches_chk_result and not_matches_chk_result
 
-def jmespath_match(target_ds, filters, str_filter_sep=',', str_filter_kv_sep=':'):
-  if isinstance(filters, str):
-    return _jmespath_match_filters_str(target_ds, filters, str_filter_sep, 
-                                       str_filter_kv_sep)
-  elif isinstance(filters, list):
-    return _jmespath_match_filters_list(target_ds, filters, str_filter_sep, 
-                                        str_filter_kv_sep)
-  return []
+  return match_results
+
+def jmespath_match(target_ds, filters, **kwargs): 
+  if isinstance(filters, list):
+    return _jmespath_match_filters_list(target_ds, filters, **kwargs) 
+  return None
 
 def load_store(cfg):
   store_mod_name = 'stores.%s_store' % cfg['store']['name']
