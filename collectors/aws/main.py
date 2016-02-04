@@ -6,7 +6,7 @@ import json
 import argparse
 import boto.ec2
 from collections import OrderedDict
-from util import utils
+import inframer.utils as utils
 
 VERBOSE = False
 

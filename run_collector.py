@@ -4,7 +4,7 @@ import os
 import sys
 import argparse
 import importlib
-from util import utils
+import inframer.utils as utils
 
 def usage():
   return '''
