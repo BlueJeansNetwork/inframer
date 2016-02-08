@@ -1,7 +1,5 @@
 Inframer - collect, store, analyze - your infrastructure information
 
-**WARNING: MADE BREAKING CHANGES WHICH RENDER README OBSOLETE - expect README to be fixed by 2016-02-03**
-
 ### Introduction
 
 * Rootconf talk: http://www.youtube.com/watch?v=qB1bGUNzRb4
@@ -54,9 +52,9 @@ make dummy
 make run
 ```
 
-### Examples
+### Basic usage examples
 
-* Assumption: trial run setup done
+* Assumption: dummy data loaded. All of the below examples produce the right results against it.
 
 * Get list of available infrastructure databases:
 
@@ -78,69 +76,129 @@ curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/"
 curl -L "http://localhost:8081/inframer/api/v1/db/chef/env/"
 ```
 
-* For a view, filter out keys on a pattern
+* View all the data captured for a view. This will load all of the data for that view. So use it only when you need it.
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?key_pattern=us-west"
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=*"
 ```
 
-* For a view, expand/flatten the keys
+* You can limit the maximum no. of records to be shown also.
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?flatten=false&key_pattern=us-west"
-curl -L "http://localhost:8081/inframer/api/v1/db/chef/env/?flatten=false"
-curl -L "http://localhost:8081/inframer/api/v1/db/chef/env/?key_pattern=qa&flatten=true"
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=*&maxrecords=2"
 ```
 
-* For a target, find its attributes
+* View specific keys for a view. e.g. find nodes with regions and id info in AWS
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/chef/env/chef_host/qa/"
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/us-east-1/i-inst4"
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id"
 ```
 
-* For a target, flatten its data structure
+* Add a basic filter to match key values e.g. find nodes with regions matching west
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/chef/env/chef_host/qa?flatten=true"
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west"
 ```
 
-* For a target, find a specific key
+* Multiple filters can also be added. Multiple filters are 'OR'd by default e.g. find nodes with regions matching west or instance id matching inst4
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/us-east-1/i-inst4?key=private_ip_address"
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst4"
 ```
 
-* Find a specific key for multiple targets - go the view and then specify same key as above as - target\_key.
+* You can change default filter type from OR to AND.
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?key_pattern=us-west&target_key=state"
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&filter_type=AND"
 ```
 
-* Find multiple values for a specific key e.g. find all aws instances of type m3.\*
+* For the returned list, you can sort the results by fields in the list. e.g. sort by id
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?key_pattern=us-west&target_key=instance_type&target_value_pattern=m3"
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&sort_on=id"
 ```
 
-* Find a specific key with a specific value for multiple targets - go the view and then specify same key as above as - target\_key
-and its corresponding value as target\_val
-```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?key_pattern=us-west&target_key=state&target_val=running"
-```
-
-* If you just want to expand the urls in the view state - use the following url - use this switch carefully because 
-this will increase the payload.
+* Reverse the list of results
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?target_key=\*&flatten=false"
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&sort_on=id&reverse=true"
 ```
 
-* For flattening - if you want a separator other than / - use the query string parameter - key\_sep
+* Sometimes you are just interested in the summary and not the results per-se. For that use the summary query field.
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/chef/env/chef_host/qa?flatten=true&key_sep=|"
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&summary=true"
 ```
+
+The error count in the above result are the records for which the query failed e.g you queried for a field which was present in some but not all of the matched records, etc.
+
+* Detailed information of each url in the search result can be flattened out also:
+
+```
+http://localhost:8081/inframer/api/v1/db/aws/region/us-west-2/i-inst2?flatten=true&sep=| # default separator is '.'
+```
+
+### Advanced usage examples
+
+* Inframer is powered by [jmespath](http://jmespath.org/) which means that you can query nested data structures like so:
+
+```
+curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=tags.Name
+```
+
+where tags.Name actually queries:
+
+```
+tags: {
+  Name: "dummy-vm-2",
+  Project: "testproj",
+  env: "qa"
+},
+```
+
+* With all the query parameters the URLs do get ugly - you can send your query parameters in POST requests also:
+
+```
+curl -X POST 'http://localhost:8081/inframer/api/v1/db/aws/region/' -d @docs/queries/aws.json --header 'Content-Type: application/json'
+```
+
+where [docs/queries/aws.json](https://github.com/BlueJeansNetwork/inframer/tree/master/docs/queries/aws.json) contains
+
+```
+{
+  "keys": ["tags.Name", "instance_type", "state"],
+  "filters": [
+      {"id": "stopped", "key": "state",  "not_matches": ["running", "terminated"], "regex": false},
+      {"id": "is_east_2", "key": "region", "matches": ["east"], "not_matches": ["east-1"], "regex": true}
+    ],
+  "filter_type": "AND",
+  "maxrecords": -1,
+  "reverse_match": false,
+  "sort_on": "tags.Name",
+  "reverse": false,
+  "summary": false
+}
+```
+
+which says:
+
+```
+Give me tags.Name, instance_type, state for those records where filter query is 
+
+(("records where key 'state' should not match 'running' and should not match 'terminated' and do not interpret value of 'state' as a regex) 
+ AND 
+(("records where key 'region' should match 'east' and not match 'east1' and interpret the value of 'region' as regex"))
+
+Sort the result on tags.Name
+
+Show me all the records
+
+There is no need to reverse the results or print only the summary
+```
+
+Individiual filter expression in a filter are ANDed i.e. matches should be true (if specified) AND not\_matches should be true (if specified). 
+
+The overall filter expression can be AND or OR depending on filter_type.
 
 ### Actual run
 

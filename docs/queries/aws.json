@@ -1,0 +1,13 @@
+{
+  "keys": ["tags.Name", "instance_type", "state"],
+  "filters": [
+      {"id": "stopped", "key": "state",  "not_matches": ["running", "terminated"], "regex": false},
+      {"id": "is_east_2", "key": "region", "matches": ["east"], "not_matches": ["east-1"], "regex": true}
+    ],
+  "filter_type": "AND",
+  "maxrecords": -1,
+  "reverse_match": false,
+  "sort_on": "tags.Name",
+  "reverse": false,
+  "summary": false
+}
