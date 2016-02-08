@@ -59,75 +59,75 @@ make run
 * Get list of available infrastructure databases:
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/"
+curl "http://localhost:8081/inframer/api/v1/db/"
 ```
 
 * For an environment, get the list of views
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/"
-curl -L "http://localhost:8081/inframer/api/v1/db/chef/"
+curl "http://localhost:8081/inframer/api/v1/db/aws/"
+curl "http://localhost:8081/inframer/api/v1/db/chef/"
 ```
 
 * For a view, get the list of all of its targets
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/"
-curl -L "http://localhost:8081/inframer/api/v1/db/chef/env/"
+curl "http://localhost:8081/inframer/api/v1/db/aws/region/"
+curl "http://localhost:8081/inframer/api/v1/db/chef/env/"
 ```
 
 * View all the data captured for a view. This will load all of the data for that view. So use it only when you need it.
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=*"
+curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=*"
 ```
 
 * You can limit the maximum no. of records to be shown also.
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=*&maxrecords=2"
+curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=*&maxrecords=2"
 ```
 
 * View specific keys for a view. e.g. find nodes with regions and id info in AWS
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id"
+curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id"
 ```
 
 * Add a basic filter to match key values e.g. find nodes with regions matching west
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west"
+curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west"
 ```
 
 * Multiple filters can also be added. Multiple filters are 'OR'd by default e.g. find nodes with regions matching west or instance id matching inst4
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst4"
+curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst4"
 ```
 
 * You can change default filter type from OR to AND.
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&filter_type=AND"
+curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&filter_type=AND"
 ```
 
 * For the returned list, you can sort the results by fields in the list. e.g. sort by id
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&sort_on=id"
+curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&sort_on=id"
 ```
 
 * Reverse the list of results
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&sort_on=id&reverse=true"
+curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&sort_on=id&reverse=true"
 ```
 
 * Sometimes you are just interested in the summary and not the results per-se. For that use the summary query field.
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&summary=true"
+curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&summary=true"
 ```
 
 The error count in the above result are the records for which the query failed e.g you queried for a field which was present in some but not all of the matched records, etc.
@@ -135,7 +135,7 @@ The error count in the above result are the records for which the query failed e
 * Detailed information of each url in the search result can be flattened out also:
 
 ```
-http://localhost:8081/inframer/api/v1/db/aws/region/us-west-2/i-inst2?flatten=true&sep=| # default separator is '.'
+curl "http://localhost:8081/inframer/api/v1/db/aws/region/us-west-2/i-inst2?flatten=true&sep=|" # default separator is '.'
 ```
 
 ### Advanced usage examples
@@ -143,7 +143,7 @@ http://localhost:8081/inframer/api/v1/db/aws/region/us-west-2/i-inst2?flatten=tr
 * Inframer is powered by [jmespath](http://jmespath.org/) which means that you can query nested data structures like so:
 
 ```
-curl -L "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=tags.Name
+curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=tags.Name
 ```
 
 where tags.Name actually queries:
