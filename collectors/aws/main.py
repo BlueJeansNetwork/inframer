@@ -13,9 +13,10 @@ VERBOSE = False
 def collect_data(cfg):
 
   region = cfg['cmdline']['region']
+  log_prefix = 'aws - %s' % region
 
   if VERBOSE:
-    print 'collecting aws data for region %s' % region
+    print log_prefix + ' collecting data'
 
   ec2_conn = boto.ec2.connect_to_region(region)
   curr_reservations = ec2_conn.get_all_instances()
@@ -23,8 +24,13 @@ def collect_data(cfg):
 
   view_data = {}
   count = 1
+  total = len(instances)
 
   for instance in instances:
+
+    if VERBOSE:
+      print '%s: Getting %d/%d' % (log_prefix, count, total)
+
     # flatten out the ds, stringify the values and unflatten it - shortcut
     # rather than taking selective items
     flattened_ds = utils.flatten_ds(instance.__dict__)

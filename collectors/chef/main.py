@@ -14,43 +14,73 @@ requests.packages.urllib3.disable_warnings()
 VERBOSE = False
 
 def node_collect_data(api, max_records):
+  log_prefix = 'chef - node -'
+
   if VERBOSE:
-    print 'collecting data'
+    print log_prefix + ' collecting data'
+
   all_nodes = list(chef.Node.list())
   total_nodes = len(all_nodes)
+
   if VERBOSE:
-    print 'found %d nodes' % total_nodes
+    print '%s found %d nodes' % (log_prefix, total_nodes)
   count = 1
   node_data = {}
+
   for node in all_nodes:
     if VERBOSE:
-      print 'loading node %d/%d' % (count, total_nodes)
+      print '%s loading node %d/%d' % (log_prefix, count, total_nodes)
     curr_node_data = chef.Node(node).attributes.to_dict()
-    if 'ipaddress' in curr_node_data:
+
+    if 'fqdn' in curr_node_data and curr_node_data['fqdn'].strip() != '':
+
+      if curr_node_data['fqdn'] in node_data:
+        print log_prefix + ' duplicate fqdn - overwriting'
+      node_data[curr_node_data['fqdn']] = curr_node_data
+
+    elif 'hostname' in curr_node_data and curr_node_data['hostname'].strip() != '':
+
+      if curr_node_data['hostname'] in node_data:
+        print log_prefix + ' duplicate hostname - overwriting'
+      node_data[curr_node_data['hostname']] = curr_node_data
+
+    elif 'ipaddress' in curr_node_data and curr_node_data['ipaddress'].strip() != '':
+
+      if curr_node_data['ipaddress'] in node_data:
+        print log_prefix + ' duplicate ipaddress - overwriting'
       node_data[curr_node_data['ipaddress']] = curr_node_data
+
     else:
-      if 'no_ipaddress' not in node_data:
-        node_data['no_ipaddress'] = {}
-      node_data['no_ipaddress'][node] = curr_node_data
+      node_data[node] = curr_node_data
+      #if 'ipaddress' in curr_node_data:
+      #  node_data[curr_node_data['ipaddress']] = curr_node_data
+      #else:
+      #  if 'no_ipaddress' not in node_data:
+      #    node_data['no_ipaddress'] = {}
+      #  node_data['no_ipaddress'][node] = curr_node_data
+
     if max_records and count == max_records:
       break
     count += 1
   return node_data
 
 def env_collect_data(api, max_records):
+  log_prefix = 'chef - env -'
+
   if VERBOSE:
-    print 'collecting data'
+    print log_prefix + ' collecting data'
   all_envs = list(chef.Environment.list())
   total_envs = len(all_envs)
+
   if VERBOSE:
-    print 'found %d environments' % total_envs
+    print '%s found %d environments' % (log_prefix, total_envs)
 
   count = 1
   env_data = {}
 
   for env in all_envs:
     if VERBOSE:
-      print "loading env %d/%d" % (count, total_envs)
+      print "%s loading env %d/%d" % (log_prefix, count, total_envs)
     env_data[env] = chef.Environment(env).to_dict()
 
     if max_records and count == max_records:

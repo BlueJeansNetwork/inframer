@@ -12,8 +12,11 @@ requests.packages.urllib3.disable_warnings()
 VERBOSE = False
 
 def collect_data(cfg):
+  log_prefix = 'device42'
+
   if VERBOSE:
-    print 'Collecting data'
+    print log_prefix + ' collecting data'
+
   view_data = {}
   # create auth object for basic authentication
   auth_obj = HTTPBasicAuth(cfg['cmdline']['username'],
@@ -25,7 +28,7 @@ def collect_data(cfg):
                                                             svc_level)
     rs = requests.get(url, verify=False, auth=auth_obj)
     if rs.status_code != 200:
-      print 'Failed to check url - %s' % url
+      print '%s failed to check url - %s' % (log_prefix, url)
       sys.exit(1)
     response_data = rs.json()
 
@@ -43,7 +46,7 @@ def collect_data(cfg):
       count +=1
 
       if VERBOSE:
-        print '%s: Getting %d/%d' % (svc_level, count, nsvc_devices)
+        print '%s %s: Getting %d/%d' % (log_prefix, svc_level, count, nsvc_devices)
       sys.stdout.flush()
 
       device_name = device['name']
@@ -53,7 +56,7 @@ def collect_data(cfg):
       device_url = 'https://%s/%s' % (cfg['cmdline']['host'], device_url)
       device_rs = requests.get(device_url, verify=False, auth=auth_obj)
       if device_rs.status_code != 200:
-        print 'Failed to check url - %s' % url
+        print '%s failed to check url - %s' % (log_prefix, url)
         sys.exit(1)
 
       device_info = device_rs.json()
@@ -74,9 +77,12 @@ def collect_data(cfg):
 
       if not 'ip_addresses' in cleaned_device_info:
         continue
-      ips = []
-      for ip_info in cleaned_device_info['ip_addresses']:
-        view_data[ip_info['ip']] = cleaned_device_info
+
+      view_data[device_info['device_id']] = cleaned_device_info
+
+      #ips = []
+      #for ip_info in cleaned_device_info['ip_addresses']:
+      #  view_data[ip_info['ip']] = cleaned_device_info
 
       #device_type = device_info['type']
       #if device_type not in view_data[svc_level]:
