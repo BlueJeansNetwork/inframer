@@ -52,6 +52,16 @@ make dummy
 make run
 ```
 
+### 5 second test of all features:
+
+```
+make dummy
+make run
+make test
+```
+
+will show the output of all the curl URLs in the following sections.
+
 ### Basic usage examples
 
 * Assumption: dummy data loaded. All of the below examples produce the right results against it.
@@ -59,75 +69,91 @@ make run
 * Get list of available infrastructure databases:
 
 ```
-curl "http://localhost:8081/inframer/api/v1/db/"
+# add to test cases
+curl --fail "http://localhost:8081/inframer/api/v1/db/"
 ```
 
 * For an environment, get the list of views
 
 ```
-curl "http://localhost:8081/inframer/api/v1/db/aws/"
-curl "http://localhost:8081/inframer/api/v1/db/chef/"
+# add to test cases
+curl --fail "http://localhost:8081/inframer/api/v1/db/aws/"
+
+# add to test cases
+curl --fail "http://localhost:8081/inframer/api/v1/db/chef/"
 ```
 
 * For a view, get the list of all of its targets
 
 ```
-curl "http://localhost:8081/inframer/api/v1/db/aws/region/"
-curl "http://localhost:8081/inframer/api/v1/db/chef/env/"
+# add to test cases
+curl --fail "http://localhost:8081/inframer/api/v1/db/aws/region/"
+
+# add to test cases
+curl --fail "http://localhost:8081/inframer/api/v1/db/chef/env/"
 ```
 
 * View all the data captured for a view. This will load all of the data for that view. So use it only when you need it.
 
 ```
-curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=*"
+# add to test cases
+curl --fail "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=*"
 ```
 
 * You can limit the maximum no. of records to be shown also.
 
 ```
-curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=*&maxrecords=2"
+# add to test cases
+curl --fail "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=*&maxrecords=2"
 ```
 
 * View specific keys for a view. e.g. find nodes with regions and id info in AWS
 
 ```
-curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id"
+# add to test cases
+curl --fail "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id"
 ```
 
 * Add a basic filter to match key values e.g. find nodes with regions matching west
 
 ```
-curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west"
+# add to test cases
+curl --fail "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west"
 ```
 
 * Multiple filters can also be added. Multiple filters are 'OR'd by default e.g. find nodes with regions matching west or instance id matching inst4
 
 ```
-curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst4"
+# add to test cases
+curl --fail "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst4"
 ```
 
 * You can change default filter type from OR to AND.
 
 ```
-curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&filter_type=AND"
+# add to test cases
+curl --fail "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&filter_type=AND"
 ```
 
 * For the returned list, you can sort the results by fields in the list. e.g. sort by id
 
 ```
-curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&sort_on=id"
+# add to test cases
+curl --fail "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&sort_on=id"
 ```
 
 * Reverse the list of results
 
 ```
-curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&sort_on=id&reverse=true"
+# add to test cases
+curl --fail "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&sort_on=id&reverse=true"
 ```
 
 * Sometimes you are just interested in the summary and not the results per-se. For that use the summary query field.
 
 ```
-curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&summary=true"
+# add to test cases
+curl --fail "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=region,id&filters=region:west,id:inst3&summary=true"
 ```
 
 The error count in the above result are the records for which the query failed e.g you queried for a field which was present in some but not all of the matched records, etc.
@@ -135,7 +161,8 @@ The error count in the above result are the records for which the query failed e
 * Detailed information of each url in the search result can be flattened out also:
 
 ```
-curl "http://localhost:8081/inframer/api/v1/db/aws/region/us-west-2/i-inst2?flatten=true&sep=|" # default separator is '.'
+# add to test cases
+curl --fail "http://localhost:8081/inframer/api/v1/db/aws/region/us-west-2/i-inst2?flatten=true&sep=|" # default separator is '.'
 ```
 
 ### Advanced usage examples
@@ -143,7 +170,8 @@ curl "http://localhost:8081/inframer/api/v1/db/aws/region/us-west-2/i-inst2?flat
 * Inframer is powered by [jmespath](http://jmespath.org/) which means that you can query nested data structures like so:
 
 ```
-curl "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=tags.Name
+# add to test cases
+curl --fail "http://localhost:8081/inframer/api/v1/db/aws/region/?keys=tags.Name"
 ```
 
 where tags.Name actually queries:
@@ -159,7 +187,8 @@ tags: {
 * With all the query parameters the URLs do get ugly - you can send your query parameters in POST requests also:
 
 ```
-curl -X POST 'http://localhost:8081/inframer/api/v1/db/aws/region/' -d @docs/queries/aws.json --header 'Content-Type: application/json'
+# add to test cases
+curl --fail -X POST 'http://localhost:8081/inframer/api/v1/db/aws/region/' -d @docs/queries/aws.json --header 'Content-Type: application/json' --header 'X-HTTP-Method-Override: GET'
 ```
 
 where [docs/queries/aws.json](https://github.com/BlueJeansNetwork/inframer/tree/master/docs/queries/aws.json) contains

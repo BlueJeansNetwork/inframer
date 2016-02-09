@@ -1,4 +1,4 @@
-.PHONY: deps dummy run
+.PHONY: deps dummy run test
 
 ## so we can parse args to 'make test'
 ifeq (test,$(firstword $(MAKECMDGOALS)))
@@ -13,5 +13,7 @@ dummy:
 	python helpers/dummy-data/load_dummy_data.py
 
 run:
-	make dummy
 	python api.py
+
+test:
+	./create-test.sh && ./test.sh 2>/dev/null
