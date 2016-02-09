@@ -22,6 +22,10 @@ def collect_data(cfg):
   auth_obj = HTTPBasicAuth(cfg['cmdline']['username'],
                            cfg['cmdline']['password'])
 
+  valid_ids = None
+  if 'ids' in cfg['cmdline']:
+    valid_ids = set(cfg['cmdline']['ids'])
+
   # get devices in each service level
   for svc_level in cfg['cmdline']['service_levels']:
     url = 'https://%s/api/1.0/devices/?service_level=%s' % (cfg['cmdline']['host'],
@@ -32,9 +36,16 @@ def collect_data(cfg):
       sys.exit(1)
     response_data = rs.json()
 
+
+    valid_devices = response_data['Devices']
+    if valid_ids is not None:
+      valid_devices = [x for x in response_data['Devices'] if \
+                       str(x['device_id']) in valid_ids]
+
     count = 0
-    nsvc_devices = len(response_data['Devices'])
-    for device in response_data['Devices']:
+    nsvc_devices = len(valid_devices)
+
+    for device in valid_devices:
       # for each device capture its info minus the null params
       if svc_level not in view_data:
         view_data[svc_level] = {}
@@ -113,6 +124,9 @@ def parse_cmdline(args, cfg):
   parser.add_argument('-s', '--service_levels',
                       help='device42 service levels to search',
                       nargs='*', required=True)
+  parser.add_argument('-i', '--ids',
+                      help='device42 ids to search',
+                      nargs='*', required=False)
   parser.add_argument('-m', '--max_records',
                       help='will not get more than max_records - for testing',
                       type=int, default=None)

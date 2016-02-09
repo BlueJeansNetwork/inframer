@@ -34,7 +34,7 @@ def run_collector(collector_mod, args):
 
   if 'name' in collector_cfg['store']:
     if hasattr(collector_mod, 'store_data'):
-      collector_mod.store_data(collector_cfg, data)
+      collector_mod.store_data(collector_cfg, view_data)
     else:
       store_name = collector_cfg['store']['name']
       store_obj = utils.load_store(collector_cfg)
