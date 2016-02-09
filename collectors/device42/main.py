@@ -41,6 +41,8 @@ def collect_data(cfg):
     if valid_ids is not None:
       valid_devices = [x for x in response_data['Devices'] if \
                        str(x['device_id']) in valid_ids]
+      if VERBOSE:
+        print '%s: loading devices %s' % (valid_devices)
 
     count = 0
     nsvc_devices = len(valid_devices)
