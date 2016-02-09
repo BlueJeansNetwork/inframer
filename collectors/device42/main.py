@@ -23,7 +23,7 @@ def collect_data(cfg):
                            cfg['cmdline']['password'])
 
   input_ids = None
-  if 'ids' in cfg['cmdline']:
+  if 'ids' in cfg['cmdline'] and cfg['cmdline']['ids'] is not None:
     input_ids = set(cfg['cmdline']['ids'])
 
   # get devices in each service level
