@@ -47,10 +47,10 @@ def collect_data(cfg):
 
       if VERBOSE:
         if valid_devices:
-          print '%s valid device ids: %s' % (log_prefix, valid_ids)
+          print '%s %s: valid device ids: %s' % (log_prefix, svc_level, valid_ids)
 
       if invalid_ids:
-        print '%s invalid device ids: %s' % (log_prefix, invalid_ids)
+        print '%s %s: invalid device ids: %s' % (log_prefix, svc_level, invalid_ids)
 
     count = 0
     nsvc_devices = len(valid_devices)
