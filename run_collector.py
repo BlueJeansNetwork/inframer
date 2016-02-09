@@ -16,7 +16,12 @@ arguments:
   collector_name - collector to call
 '''
 
-def run_collector(collector_mod, args):
+def load_collector_mod(collector_name):
+  collector_mod_name = 'collectors.%s' % collector_name
+  return importlib.import_module(collector_mod_name)
+
+def run_collector(collector_name, args):
+  collector_mod = load_collector_mod(collector_name)
   mod_dir = os.path.dirname(collector_mod.__file__)
 
   collectors_base_cfg = utils.load_base_cfg('collectors')
@@ -40,10 +45,6 @@ def run_collector(collector_mod, args):
       store_obj = utils.load_store(collector_cfg)
       store_obj.store_data(view_data)
 
-def load_collector_mod(collector_name):
-  collector_mod_name = 'collectors.%s' % collector_name
-  return importlib.import_module(collector_mod_name)
-
 def validate_input(argv):
   if len(argv) < 2:
     print 'ERROR: Collector not specified'
@@ -52,8 +53,7 @@ def validate_input(argv):
 
 def main(argv):
   validate_input(argv)
-  collector_mod = load_collector_mod(sys.argv[1])
-  run_collector(collector_mod, argv[2:])
+  run_collector(sys.argv[1], argv[2:])
 
 if __name__ == '__main__':
   # test comment
