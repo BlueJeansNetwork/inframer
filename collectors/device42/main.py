@@ -22,9 +22,9 @@ def collect_data(cfg):
   auth_obj = HTTPBasicAuth(cfg['cmdline']['username'],
                            cfg['cmdline']['password'])
 
-  valid_ids = None
+  input_ids = None
   if 'ids' in cfg['cmdline']:
-    valid_ids = set(cfg['cmdline']['ids'])
+    input_ids = set(cfg['cmdline']['ids'])
 
   # get devices in each service level
   for svc_level in cfg['cmdline']['service_levels']:
@@ -38,11 +38,13 @@ def collect_data(cfg):
 
 
     valid_devices = response_data['Devices']
-    if valid_ids is not None:
+    if input_ids is not None:
       valid_devices = [x for x in response_data['Devices'] if \
-                       str(x['device_id']) in valid_ids]
+                       str(x['device_id']) in input_ids]
+      valid_ids = [str(x['device_id']) for x in valid_devices]
       if VERBOSE:
-        print '%s: loading devices %s' % (log_prefix, valid_devices)
+        if valid_devices:
+          print '%s valid device ids: %s' % (log_prefix, valid_devices)
 
     count = 0
     nsvc_devices = len(valid_devices)
