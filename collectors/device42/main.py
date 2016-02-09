@@ -12,7 +12,7 @@ requests.packages.urllib3.disable_warnings()
 VERBOSE = False
 
 def collect_data(cfg):
-  log_prefix = 'device42'
+  log_prefix = 'device42:'
 
   if VERBOSE:
     print log_prefix + ' collecting data'
@@ -42,7 +42,7 @@ def collect_data(cfg):
       valid_devices = [x for x in response_data['Devices'] if \
                        str(x['device_id']) in valid_ids]
       if VERBOSE:
-        print '%s: loading devices %s' % (valid_devices)
+        print '%s: loading devices %s' % (log_prefix, valid_devices)
 
     count = 0
     nsvc_devices = len(valid_devices)

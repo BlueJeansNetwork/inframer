@@ -13,7 +13,7 @@ VERBOSE = False
 def collect_data(cfg):
 
   region = cfg['cmdline']['region']
-  log_prefix = 'aws - %s' % region
+  log_prefix = 'aws - %s:' % region
 
   if VERBOSE:
     print log_prefix + ' collecting data'

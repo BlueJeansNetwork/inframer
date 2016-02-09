@@ -19,7 +19,7 @@ def keyable_attribute(ds, key):
   return False
 
 def node_collect_data(api, max_records):
-  log_prefix = 'chef - node -'
+  log_prefix = 'chef - node:'
 
   if VERBOSE:
     print log_prefix + ' collecting data'
@@ -70,7 +70,7 @@ def node_collect_data(api, max_records):
   return node_data
 
 def env_collect_data(api, max_records):
-  log_prefix = 'chef - env -'
+  log_prefix = 'chef - env:'
 
   if VERBOSE:
     print log_prefix + ' collecting data'
