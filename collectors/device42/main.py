@@ -78,7 +78,7 @@ def collect_data(cfg):
       if not 'ip_addresses' in cleaned_device_info:
         continue
 
-      view_data[device_info['device_id']] = cleaned_device_info
+      view_data[str(device_info['device_id'])] = cleaned_device_info
 
       #ips = []
       #for ip_info in cleaned_device_info['ip_addresses']:
