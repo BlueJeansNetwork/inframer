@@ -13,6 +13,11 @@ requests.packages.urllib3.disable_warnings()
 
 VERBOSE = False
 
+def keyable_attribute(ds, key):
+  if key in ds and ds[key] is not None and ds[key].strip() != '':
+    return True
+  return False
+
 def node_collect_data(api, max_records):
   log_prefix = 'chef - node -'
 
@@ -32,19 +37,19 @@ def node_collect_data(api, max_records):
       print '%s loading node %d/%d' % (log_prefix, count, total_nodes)
     curr_node_data = chef.Node(node).attributes.to_dict()
 
-    if 'fqdn' in curr_node_data and curr_node_data['fqdn'].strip() != '':
+    if keyable_attribute(curr_node_data, 'fqdn'):
 
       if curr_node_data['fqdn'] in node_data:
         print log_prefix + ' duplicate fqdn - overwriting'
       node_data[curr_node_data['fqdn']] = curr_node_data
 
-    elif 'hostname' in curr_node_data and curr_node_data['hostname'].strip() != '':
+    elif keyable_attribute(curr_node_data, 'hostname'):
 
       if curr_node_data['hostname'] in node_data:
         print log_prefix + ' duplicate hostname - overwriting'
       node_data[curr_node_data['hostname']] = curr_node_data
 
-    elif 'ipaddress' in curr_node_data and curr_node_data['ipaddress'].strip() != '':
+    elif keyable_attribute(curr_node_data, 'ipaddress'):
 
       if curr_node_data['ipaddress'] in node_data:
         print log_prefix + ' duplicate ipaddress - overwriting'
