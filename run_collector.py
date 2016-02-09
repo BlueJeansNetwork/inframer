@@ -16,11 +16,31 @@ arguments:
   collector_name - collector to call
 '''
 
+def _dict_args_to_list(args):
+  output = []
+  for k, v in args.iteritems():
+    output.append(k)
+
+    if isinstance(v, list):
+      for item in v:
+        output.append(item)
+      continue
+
+    if v == 'true':
+      continue
+
+    output.append(v)
+  return output
+
 def load_collector_mod(collector_name):
   collector_mod_name = 'collectors.%s' % collector_name
   return importlib.import_module(collector_mod_name)
 
 def run_collector(collector_name, args):
+
+  if isinstance(args, dict):
+    args = _dict_args_to_list(args)
+
   collector_mod = load_collector_mod(collector_name)
   mod_dir = os.path.dirname(collector_mod.__file__)
 
