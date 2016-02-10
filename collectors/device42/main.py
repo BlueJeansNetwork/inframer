@@ -35,9 +35,8 @@ def collect_data(cfg):
       print '%s failed to check url - %s' % (log_prefix, url)
       sys.exit(1)
     response_data = rs.json()
-
-
     valid_devices = response_data['Devices']
+
     if input_ids is not None:
       valid_devices = [x for x in response_data['Devices'] if \
                        str(x['device_id']) in input_ids]
