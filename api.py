@@ -21,7 +21,7 @@ BASE_URI_DB = BASE_URI + '/db'
 
 app = flask.Flask(__name__)
 
-@app.route(BASE_URI_DB + '/<db>/reload', methods=['GET'])
+@app.route(BASE_URI_DB + '/<db>/reload', methods=['POST'])
 def reload_device42(db):
   output = []
   if db == 'device42':
