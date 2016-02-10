@@ -64,6 +64,7 @@ def run_collector(collector_name, args):
       store_name = collector_cfg['store']['name']
       store_obj = utils.load_store(collector_cfg)
       store_obj.store_data(view_data)
+  return view_data
 
 def validate_input(argv):
   if len(argv) < 2:

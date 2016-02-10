@@ -6,6 +6,7 @@ import re
 import jmespath
 import flask
 import inframer.utils as utils
+import inframer.run_collector as run_collector
 
 # load the cfg
 CFG = utils.load_base_cfg('config')
@@ -19,6 +20,13 @@ BASE_URI = '/inframer/api/v1'
 BASE_URI_DB = BASE_URI + '/db'
 
 app = flask.Flask(__name__)
+
+@app.route(BASE_URI_DB + '/<db>/reload', methods=['GET'])
+def reload_device42(db):
+  output = []
+  if db == 'device42':
+    output = run_collector.run_collector('device42.main', flask.request.get_json())
+  return flask.jsonify({'output': output})
 
 @app.route(BASE_URI_DB + '/<db>/<view>/<path:varargs>', methods=['GET'])
 def get_db_target_data(db, view, varargs):
