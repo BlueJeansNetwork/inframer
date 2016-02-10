@@ -86,13 +86,6 @@ def collect_data(cfg):
 
       device_info = device_rs.json()
 
-      # skip devices not in use
-      if device_info['in_service'] != True:
-        continue
-
-      if not 'ip_addresses' in device_info:
-        continue
-
       # remove the params which don't have any value
       cleaned_device_info = {}
       for param in device_info:
@@ -100,19 +93,7 @@ def collect_data(cfg):
           continue
         cleaned_device_info[param] = device_info[param]
 
-      if not 'ip_addresses' in cleaned_device_info:
-        continue
-
       view_data[str(device_info['device_id'])] = cleaned_device_info
-
-      #ips = []
-      #for ip_info in cleaned_device_info['ip_addresses']:
-      #  view_data[ip_info['ip']] = cleaned_device_info
-
-      #device_type = device_info['type']
-      #if device_type not in view_data[svc_level]:
-      #  view_data[svc_level][device_type] = []
-      #view_data[svc_level][device_type].append(cleaned_device_info)
 
   if cfg['cmdline']['dump_ds']:
     print json.dumps(view_data, indent=4)
