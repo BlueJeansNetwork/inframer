@@ -180,7 +180,6 @@ def db_data(db, view):
       include_this_record = False
 
       match_results = utils.jmespath_match(response, filters)
-      print match_results
       any_true = any(match_results.values())
       all_true = all(match_results.values())
 
