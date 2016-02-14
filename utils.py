@@ -52,13 +52,21 @@ def _jmespath_match_filters_list(target_ds, filters, **kwargs):
       filter_key = filter_data['key']
       search_val = jmespath.search(filter_key, target_ds)
 
+      if 'exists' in filter_data:
+        match_results[filter_data['id']] = False
+
+        if not filters['exists']:
+          if search_val is None:
+            match_results[filter_data['id']] = True
+        else:
+          if search_val is not None:
+            match_results[filter_data['id']] = True
+
+        continue
+
       chk_op_keys = []
       matches_chk_result = False
       not_matches_chk_result = False
-
-      if search_val is None:
-        match_results[filter_data['id']] = False
-        continue
 
       if 'matches' in filter_data:
         chk_op_keys.append('matches')
