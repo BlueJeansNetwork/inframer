@@ -30,7 +30,7 @@ def _jmespath_match_filters_str(target_ds, filters, **kwargs):
         match_results.append(True)
     elif not isinstance(search_val, dict):
       search_val = str(search_val)
-      if re.search(re.compile(filter_val), str(search_val), re.IGNORECASE):
+      if re.search(re.compile(filter_val, re.IGNORECASE), str(search_val)):
         match_results.append(True)
       else:
         match_results.append(False)
@@ -81,8 +81,8 @@ def _jmespath_match_filters_list(target_ds, filters, **kwargs):
             else:
               # for a list match regex against all elements of the list
               for val in search_val:
-                if any(x for x in filter_data[op_key] if re.search(re.compile(str(x)), val,
-                                                                   re.IGNORECASE)):
+                if any(x for x in filter_data[op_key] if re.search(re.compile(str(x), re.IGNORECASE), 
+                                                                   val)):
                   result = True
                   break
           else:
@@ -91,9 +91,8 @@ def _jmespath_match_filters_list(target_ds, filters, **kwargs):
               if any(x for x in filter_data[op_key] if x == search_val):
                 result = True
             else:
-              if any(x for x in filter_data[op_key] if re.search(re.compile(x),
-                                                                 search_val,
-                                                                 re.IGNORECASE)):
+              if any(x for x in filter_data[op_key] if re.search(re.compile(x, re.IGNORECASE),
+                                                                 search_val)):
                 result = True
 
           if op_key == 'matches':
