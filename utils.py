@@ -55,7 +55,7 @@ def _jmespath_match_filters_list(target_ds, filters, **kwargs):
       if 'exists' in filter_data:
         match_results[filter_data['id']] = False
 
-        if not filters['exists']:
+        if not filter_data['exists']:
           if search_val is None:
             match_results[filter_data['id']] = True
         else:
