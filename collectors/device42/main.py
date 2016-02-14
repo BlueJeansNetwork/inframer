@@ -27,72 +27,65 @@ def collect_data(cfg):
     input_ids = set(cfg['cmdline']['ids'])
 
   # get devices in each service level
-  for svc_level in cfg['cmdline']['service_levels']:
-    url = 'https://%s/api/1.0/devices/?service_level=%s' % (cfg['cmdline']['host'],
-                                                            svc_level)
-    rs = requests.get(url, verify=False, auth=auth_obj)
-    if rs.status_code != 200:
+  url = 'https://%s/api/1.0/devices/' % (cfg['cmdline']['host'])
+  rs = requests.get(url, verify=False, auth=auth_obj)
+  if rs.status_code != 200:
+    print '%s failed to check url - %s' % (log_prefix, url)
+    sys.exit(1)
+  response_data = rs.json()
+  valid_devices = response_data['Devices']
+
+  if input_ids is not None:
+    valid_devices = [x for x in response_data['Devices'] if \
+                     str(x['device_id']) in input_ids]
+
+    valid_ids = [str(x['device_id']) for x in valid_devices]
+    invalid_ids = list(set(input_ids) - set(valid_ids))
+
+    if VERBOSE:
+      if valid_devices:
+        print '%s valid device ids: %s' % (log_prefix, valid_ids)
+
+    if invalid_ids:
+      print '%s invalid device ids: %s' % (log_prefix, invalid_ids)
+
+  count = 0
+  nsvc_devices = len(valid_devices)
+
+  for device in valid_devices:
+    if cfg['cmdline']['max_records'] and \
+       count == cfg['cmdline']['max_records']:
+      break
+
+    count +=1
+
+    if VERBOSE:
+      print '%s device_id:%s Getting %d/%d' % (log_prefix, 
+                                               device['device_id'],
+                                               count, 
+                                               nsvc_devices)
+    sys.stdout.flush()
+
+    device_name = device['name']
+    device_url = device['device_url']
+
+    # query the device url
+    device_url = 'https://%s/%s' % (cfg['cmdline']['host'], device_url)
+    device_rs = requests.get(device_url, verify=False, auth=auth_obj)
+    if device_rs.status_code != 200:
       print '%s failed to check url - %s' % (log_prefix, url)
       sys.exit(1)
-    response_data = rs.json()
-    valid_devices = response_data['Devices']
 
-    if input_ids is not None:
-      valid_devices = [x for x in response_data['Devices'] if \
-                       str(x['device_id']) in input_ids]
+    device_info = device_rs.json()
 
-      valid_ids = [str(x['device_id']) for x in valid_devices]
-      invalid_ids = list(set(input_ids) - set(valid_ids))
+    # remove the params which don't have any value
+    cleaned_device_info = {}
+    for param in device_info:
+      if not device_info[param]:
+        continue
+      cleaned_device_info[param] = device_info[param]
 
-      if VERBOSE:
-        if valid_devices:
-          print '%s %s: valid device ids: %s' % (log_prefix, svc_level, valid_ids)
-
-      if invalid_ids:
-        print '%s %s: invalid device ids: %s' % (log_prefix, svc_level, invalid_ids)
-
-    count = 0
-    nsvc_devices = len(valid_devices)
-
-    for device in valid_devices:
-      # for each device capture its info minus the null params
-      if svc_level not in view_data:
-        view_data[svc_level] = {}
-
-      if cfg['cmdline']['max_records'] and \
-         count == cfg['cmdline']['max_records']:
-        break
-
-      count +=1
-
-      if VERBOSE:
-        print '%s %s: device_id:%s Getting %d/%d' % (log_prefix, 
-                                                     svc_level, 
-                                                     device['device_id'],
-                                                     count, 
-                                                     nsvc_devices)
-      sys.stdout.flush()
-
-      device_name = device['name']
-      device_url = device['device_url']
-
-      # query the device url
-      device_url = 'https://%s/%s' % (cfg['cmdline']['host'], device_url)
-      device_rs = requests.get(device_url, verify=False, auth=auth_obj)
-      if device_rs.status_code != 200:
-        print '%s failed to check url - %s' % (log_prefix, url)
-        sys.exit(1)
-
-      device_info = device_rs.json()
-
-      # remove the params which don't have any value
-      cleaned_device_info = {}
-      for param in device_info:
-        if not device_info[param]:
-          continue
-        cleaned_device_info[param] = device_info[param]
-
-      view_data[str(device_info['device_id'])] = cleaned_device_info
+    view_data[str(device_info['device_id'])] = cleaned_device_info
 
   if cfg['cmdline']['dump_ds']:
     print json.dumps(view_data, indent=4)
@@ -115,9 +108,6 @@ def parse_cmdline(args, cfg):
   parser.add_argument('-p', '--password',
                       help='device42 password',
                       type=str, required=True)
-  parser.add_argument('-s', '--service_levels',
-                      help='device42 service levels to search',
-                      nargs='*', required=True)
   parser.add_argument('-i', '--ids',
                       help='device42 ids to search',
                       nargs='*', required=False)
