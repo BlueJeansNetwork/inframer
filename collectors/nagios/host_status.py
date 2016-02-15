@@ -32,43 +32,8 @@ def collect_data(cfg):
     if VERBOSE:
       print 'Failed to check url - %s' % url
     sys.exit(1)
-  response_data = rs.json()
 
-  ip_to_hostname = {}
-  for hostname in response_data:
-    address = response_data[hostname]['address']
-    ip_to_hostname[address] = hostname
-
-  total_ips = len(ip_to_hostname)
-  if VERBOSE:
-    print 'checking host status for %d ips' % (total_ips)
-
-  view_data = {}
-  count = 1
-  for ip in ip_to_hostname:
-    hostname = ip_to_hostname[ip]
-    if VERBOSE:
-      print '%d/%d: Getting status for %s' % (count, total_ips, hostname)
-    url = 'http://%s:%d/_status/%s/_services' % (cfg['cmdline']['host'], 
-                                                 cfg['cmdline']['port'],
-                                                 hostname)
-    rs = requests.get(url)
-    if rs.status_code != 200:
-      print 'Failed to check url - %s' % url
-      continue
-    response_data = rs.json()
-
-    for service in response_data:
-      curr_state = NAGIOS_STATE_MAP[response_data[service]['current_state']]
-      if ip not in view_data:
-        view_data[ip] = {}
-      view_data[ip][service] = curr_state
-
-    if cfg['cmdline']['max_records'] and \
-       count == cfg['cmdline']['max_records']:
-      break
-
-    count += 1
+  view_data = rs.json()
 
   if cfg['cmdline']['dump_ds']:
     print json.dumps(view_data, indent=4)
