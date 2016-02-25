@@ -208,7 +208,11 @@ def db_data(db, view):
       invalid_keys = []
 
       for target_key in get_params['keys']:
-        target_value = jmespath.search(target_key, response)
+        try:
+          target_value = jmespath.search(target_key, response)
+        except Exception as e:
+          target_value = None
+
         if target_value is None:
           if 'invalid_keys' not in errors:
             errors['invalid_keys'] = []
