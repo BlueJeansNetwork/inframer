@@ -15,6 +15,8 @@ python run_collector.py chef.main --view env $*
 
 python run_collector.py nagios.host_status $*
 
+python run_collector.py icinga2.host_status $*
+
 python run_collector.py chef.main --view node $*
 
 python run_collector.py aws.main --view region --region us-west-1 $*
